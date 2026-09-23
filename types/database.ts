@@ -1,6 +1,6 @@
 // ─── Database Entity Types ───────────────────────────────────────────────────
 
-export type RouteType = 'ordinary' | 'express' | 'vajra' | 'ac';
+export type RouteType = 'ordinary' | 'express' | 'vajra' | 'ac' | 'brts';
 export type OccupancyLevel = 'low' | 'medium' | 'high' | 'full';
 export type TicketStatus = 'active' | 'used' | 'expired' | 'refunded';
 export type TransactionType = 'topup' | 'ticket' | 'refund';

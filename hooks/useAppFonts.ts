@@ -8,7 +8,7 @@ import {
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export type FontState = 'loading' | 'loaded' | 'error';
 
@@ -30,12 +30,6 @@ export function useAppFonts(): { fontState: FontState } {
       }
     })();
   }, []);
-
-  useEffect(() => {
-    if (fontState !== 'loading') {
-      SplashScreen.hideAsync();
-    }
-  }, [fontState]);
 
   return { fontState };
 }

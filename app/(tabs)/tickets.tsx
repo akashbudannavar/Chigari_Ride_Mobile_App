@@ -1,924 +1,822 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { StyleSheet, View, Pressable, ScrollView, RefreshControl, Platform, TextInput } from 'react-native';
-import { router } from 'expo-router';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import {
+  StyleSheet,
+  View,
+  Pressable,
+  ScrollView,
+  RefreshControl,
+  TextInput,
+  Platform,
+  Image,
+} from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, {
-  Easing,
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-  withDelay,
-  cancelAnimation,
-} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import {
   Search,
   X,
-  Clock,
-  Calendar,
-  IndianRupee,
-  Timer,
-  MapPin,
-  ArrowRight,
-  Repeat2,
   Bus,
-  Filter,
-  TrendingUp,
-  CircleDot,
+  Clock,
+  MapPin,
+  ChevronRight,
+  Receipt,
+  RotateCcw,
+  Plus,
+  ArrowLeft,
+  Ticket,
+  Wallet,
+  ArrowRight,
+  QrCode,
 } from 'lucide-react-native';
 import { Screen } from '@/components/Screen';
 import { Text } from '@/components/ui/Text';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Chip } from '@/components/ui/Chip';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
 import { Colors, FontFamily, Spacing, Radius, Shadows } from '@/constants/theme';
+import { getDigitalTickets, type DigitalTicket } from '@/services/ticketHistory';
+import { getWalletBalance } from '@/services/walletService';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { buildSharedTicketPayload } from '@/services/sharedTicketContract';
 
-// ─── Types ──────────────────────────────────────────────────────────────────
-interface Trip {
+interface TripItem {
   id: string;
-  route_number: string;
-  route_name: string;
-  route_color: string;
-  route_type: string;
-  from_stop: string;
-  to_stop: string;
-  amount: number;
-  duration_mins: number;
-  travel_date: string;
-  travel_time: string;
-  status: 'completed' | 'active' | 'expired';
+  routeNumber: string;
+  routeName: string;
+  fromStop: string;
+  toStop: string;
+  busPlate: string;
+  fare: number;
+  durationMinutes: number;
+  distanceKm: number;
+  dateTime: string;
+  status: 'Completed' | 'Active' | 'Cancelled' | 'In Journey';
+  digitalTicket?: DigitalTicket;
 }
 
-// ─── Sample trips (derived from real fare/route data) ────────────────────────
-const SAMPLE_TRIPS: Trip[] = [
+const SAMPLE_TRIP_HISTORY: TripItem[] = [
   {
-    id: 's1',
-    route_number: 'BRTS-1',
-    route_name: 'Hubballi CBT - Dharwad CBT',
-    route_color: '#F9A825',
-    route_type: 'brts',
-    from_stop: 'Hubballi CBT',
-    to_stop: 'Dharwad CBT',
-    amount: 25,
-    duration_mins: 45,
-    travel_date: '2026-07-07',
-    travel_time: '09:15',
-    status: 'completed',
+    id: 'trip-1',
+    routeNumber: '200A',
+    routeName: 'Route 200A - Hubballi CBT to Dharwad BRTS',
+    fromStop: 'Hubballi CBT',
+    toStop: 'Dharwad BRTS',
+    busPlate: 'Bus 200A',
+    fare: 26.0,
+    durationMinutes: 35,
+    distanceKm: 21.0,
+    dateTime: '12 Jun 2025, 09:15 AM',
+    status: 'Completed',
   },
   {
-    id: 's2',
-    route_number: 'EXP-7',
-    route_name: 'Gokul Road - Karnatak University',
-    route_color: '#1565C0',
-    route_type: 'express',
-    from_stop: 'Gokul Road',
-    to_stop: 'Karnatak University',
-    amount: 20,
-    duration_mins: 40,
-    travel_date: '2026-07-06',
-    travel_time: '17:30',
-    status: 'completed',
+    id: 'trip-2',
+    routeNumber: '201B',
+    routeName: 'Route 201B - Dharwad CBT to Hubballi Railway Station',
+    fromStop: 'Dharwad CBT',
+    toStop: 'Hubballi Railway Station',
+    busPlate: 'Bus 201B',
+    fare: 26.0,
+    durationMinutes: 38,
+    distanceKm: 22.0,
+    dateTime: '10 Jun 2025, 07:45 AM',
+    status: 'Completed',
   },
   {
-    id: 's3',
-    route_number: 'AC-3',
-    route_name: 'Hubballi Railway - Dharwad',
-    route_color: '#2E7D32',
-    route_type: 'ac',
-    from_stop: 'Hubballi Railway Station',
-    to_stop: 'Dharwad City',
-    amount: 30,
-    duration_mins: 35,
-    travel_date: '2026-07-05',
-    travel_time: '14:00',
-    status: 'completed',
+    id: 'trip-3',
+    routeNumber: '100D',
+    routeName: 'Route 100D - Hubballi CBT to Dharwad (Express)',
+    fromStop: 'Hubballi CBT',
+    toStop: 'Dharwad Old Bus Stand',
+    busPlate: 'Bus 100D',
+    fare: 30.0,
+    durationMinutes: 28,
+    distanceKm: 21.0,
+    dateTime: '08 Jun 2025, 05:30 PM',
+    status: 'Completed',
   },
   {
-    id: 's4',
-    route_number: 'ORD-14',
-    route_name: 'Old Hubballi - Dharwad Bus Stand',
-    route_color: '#616161',
-    route_type: 'ordinary',
-    from_stop: 'Old Hubballi',
-    to_stop: 'Dharwad Bus Stand',
-    amount: 15,
-    duration_mins: 50,
-    travel_date: '2026-07-04',
-    travel_time: '08:45',
-    status: 'completed',
-  },
-  {
-    id: 's5',
-    route_number: 'VAJ-5',
-    route_name: 'KIMS Hospital - Dharwad APMC',
-    route_color: '#6A1B9A',
-    route_type: 'vajra',
-    from_stop: 'KIMS Hospital',
-    to_stop: 'Dharwad APMC',
-    amount: 22,
-    duration_mins: 42,
-    travel_date: '2026-07-03',
-    travel_time: '11:20',
-    status: 'completed',
-  },
-  {
-    id: 's6',
-    route_number: 'BRTS-2',
-    route_name: 'Hubballi Airport - Dharwad Court',
-    route_color: '#F9A825',
-    route_type: 'brts',
-    from_stop: 'Hubballi Airport',
-    to_stop: 'Dharwad Court',
-    amount: 28,
-    duration_mins: 55,
-    travel_date: '2026-07-02',
-    travel_time: '06:30',
-    status: 'completed',
-  },
-  {
-    id: 's7',
-    route_number: 'EXP-7',
-    route_name: 'Gokul Road - Karnatak University',
-    route_color: '#1565C0',
-    route_type: 'express',
-    from_stop: 'Gokul Road',
-    to_stop: 'Karnatak University',
-    amount: 20,
-    duration_mins: 40,
-    travel_date: '2026-07-01',
-    travel_time: '18:15',
-    status: 'completed',
-  },
-  {
-    id: 's8',
-    route_number: 'BRTS-1',
-    route_name: 'Hubballi CBT - Dharwad CBT',
-    route_color: '#F9A825',
-    route_type: 'brts',
-    from_stop: 'Hubballi CBT',
-    to_stop: 'Sattur Cross',
-    amount: 15,
-    duration_mins: 20,
-    travel_date: '2026-06-30',
-    travel_time: '13:00',
-    status: 'completed',
+    id: 'trip-4',
+    routeNumber: '202C',
+    routeName: 'Route 202C - Hubballi CBT to Navanagar',
+    fromStop: 'Hubballi CBT',
+    toStop: 'Navanagar',
+    busPlate: 'Bus 202C',
+    fare: 15.0,
+    durationMinutes: 20,
+    distanceKm: 11.5,
+    dateTime: '05 Jun 2025, 11:20 AM',
+    status: 'Completed',
   },
 ];
 
-type FilterType = 'all' | 'completed' | 'active';
+type FilterType = 'All' | 'Completed' | 'Active';
 
 export default function TravelHistoryScreen() {
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
-
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [filter, setFilter] = useState<FilterType>('All');
+  const [refreshing, setRefreshing] = useState(false);
+  const [digitalTrips, setDigitalTrips] = useState<TripItem[]>([]);
 
-  // Entrance animations
-  const headerOpacity = useSharedValue(0);
-  const headerTranslateY = useSharedValue(-16);
-  const statsOpacity = useSharedValue(0);
-  const statsTranslateY = useSharedValue(16);
-  const listOpacity = useSharedValue(0);
+  const [walletBalance, setWalletBalance] = useState<number>(100);
 
-  useEffect(() => {
-    headerOpacity.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.ease) });
-    headerTranslateY.value = withSpring(0, { damping: 16, stiffness: 100 });
-
-    statsOpacity.value = withDelay(150, withTiming(1, { duration: 400, easing: Easing.out(Easing.ease) }));
-    statsTranslateY.value = withDelay(150, withSpring(0, { damping: 16, stiffness: 100 }));
-
-    listOpacity.value = withDelay(300, withTiming(1, { duration: 400, easing: Easing.out(Easing.ease) }));
-
-    return () => {
-      cancelAnimation(headerOpacity);
-      cancelAnimation(headerTranslateY);
-      cancelAnimation(statsOpacity);
-      cancelAnimation(statsTranslateY);
-      cancelAnimation(listOpacity);
-    };
-  }, []);
-
-  // Fetch trips
-  const fetchTrips = useCallback(async () => {
-    if (user) {
-      const { data } = await supabase
-        .from('tickets')
-        .select('*, route:routes(*), from_stop:stops!from_stop_id(*), to_stop:stops!to_stop_id(*)')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (data && data.length > 0) {
-        const mapped: Trip[] = data.map((t: any) => ({
-          id: t.id,
-          route_number: t.route?.route_number ?? '—',
-          route_name: t.route?.name ?? '—',
-          route_color: t.route?.color ?? Colors.primary,
-          route_type: t.route?.type ?? 'ordinary',
-          from_stop: t.from_stop?.name ?? '—',
-          to_stop: t.to_stop?.name ?? '—',
-          amount: t.amount,
-          duration_mins: t.route?.duration_mins ?? 30,
-          travel_date: t.travel_date,
-          travel_time: new Date(t.created_at).toTimeString().slice(0, 5),
-          status: t.status === 'active' ? 'active' : t.status === 'used' ? 'completed' : 'expired',
-        }));
-        setTrips(mapped);
-        setLoading(false);
-        return;
-      }
-    }
-
-    // Fallback to sample data
-    setTrips(SAMPLE_TRIPS);
-    setLoading(false);
-  }, [user]);
-
-  useEffect(() => {
-    fetchTrips();
-  }, [fetchTrips]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchTrips();
-    setRefreshing(false);
-  }, [fetchTrips]);
-
-  // ─── Handlers ──────────────────────────────────────────────────────────────
-  const triggerHaptic = (style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light) => {
+  const triggerHaptic = (style = Haptics.ImpactFeedbackStyle.Light) => {
     if (Platform.OS !== 'web') Haptics.impactAsync(style);
   };
 
-  const handleRepeatJourney = (trip: Trip) => {
-    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/buy-ticket');
-  };
+  const loadData = useCallback(async () => {
+    const [dts, bal] = await Promise.all([getDigitalTickets(), getWalletBalance()]);
+    setWalletBalance(bal);
+    const mapped: TripItem[] = dts.map((dt) => {
+      const issueDate = new Date(dt.issuedAt);
+      const dateTimeStr = isNaN(issueDate.getTime())
+        ? 'Today'
+        : issueDate.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          }) +
+          ', ' +
+          issueDate.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+          });
 
-  const handleClearSearch = () => {
-    triggerHaptic();
-    setSearchQuery('');
-  };
-
-  const handleFilterChange = (newFilter: FilterType) => {
-    triggerHaptic();
-    setFilter(newFilter);
-  };
-
-  // ─── Filtered trips ─────────────────────────────────────────────────────────
-  const filteredTrips = useMemo(() => {
-    let result = trips;
-
-    if (filter !== 'all') {
-      result = result.filter((t) => t.status === filter);
-    }
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (t) =>
-          t.route_number.toLowerCase().includes(q) ||
-          t.route_name.toLowerCase().includes(q) ||
-          t.from_stop.toLowerCase().includes(q) ||
-          t.to_stop.toLowerCase().includes(q),
-      );
-    }
-
-    return result;
-  }, [trips, filter, searchQuery]);
-
-  // ─── Stats ──────────────────────────────────────────────────────────────────
-  const stats = useMemo(() => {
-    const completed = trips.filter((t) => t.status === 'completed');
-    const totalSpent = completed.reduce((sum, t) => sum + t.amount, 0);
-    const totalMins = completed.reduce((sum, t) => sum + t.duration_mins, 0);
-    return {
-      totalTrips: completed.length,
-      totalSpent,
-      totalHours: Math.floor(totalMins / 60),
-      totalMins: totalMins % 60,
-    };
-  }, [trips]);
-
-  // ─── Grouped trips by date ──────────────────────────────────────────────────
-  const groupedTrips = useMemo(() => {
-    const groups: Record<string, Trip[]> = {};
-    filteredTrips.forEach((trip) => {
-      const dateKey = trip.travel_date;
-      if (!groups[dateKey]) groups[dateKey] = [];
-      groups[dateKey].push(trip);
+      return {
+        id: dt.ticketId,
+        routeNumber: dt.routeNumber || '200A',
+        routeName: dt.routeName || `Route ${dt.routeNumber || '200A'} - ${dt.fromStationName} to ${dt.toStationName}`,
+        fromStop: dt.fromStationName,
+        toStop: dt.toStationName,
+        busPlate: `Bus ${dt.routeNumber || '200A'}`,
+        fare: dt.fare,
+        durationMinutes: dt.durationMinutes || 35,
+        distanceKm: dt.distanceKm || 14.2,
+        dateTime: dateTimeStr,
+        status: dt.status === 'IN_JOURNEY' ? 'In Journey' : dt.status === 'VALID' ? 'Active' : 'Completed',
+        digitalTicket: dt,
+      };
     });
-    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
-  }, [filteredTrips]);
+    setDigitalTrips(mapped);
+  }, []);
 
-  // ─── Animated styles ────────────────────────────────────────────────────────
-  const headerStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
-    transform: [{ translateY: headerTranslateY.value }],
-  }));
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
-  const statsStyle = useAnimatedStyle(() => ({
-    opacity: statsOpacity.value,
-    transform: [{ translateY: statsTranslateY.value }],
-  }));
+  const onRefresh = async () => {
+    setRefreshing(true);
+    triggerHaptic();
+    await Promise.all([loadData(), new Promise((r) => setTimeout(r, 600))]);
+    setRefreshing(false);
+  };
 
-  const listStyle = useAnimatedStyle(() => ({
-    opacity: listOpacity.value,
-  }));
+  const allTrips = useMemo(() => {
+    return [...digitalTrips, ...SAMPLE_TRIP_HISTORY];
+  }, [digitalTrips]);
+
+  const filteredTrips = useMemo(() => {
+    return allTrips.filter((trip) => {
+      const matchesFilter =
+        filter === 'All' ? true : trip.status.toLowerCase() === filter.toLowerCase();
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        trip.routeNumber.toLowerCase().includes(q) ||
+        trip.routeName.toLowerCase().includes(q) ||
+        trip.busPlate.toLowerCase().includes(q) ||
+        trip.fromStop.toLowerCase().includes(q) ||
+        trip.toStop.toLowerCase().includes(q);
+      return matchesFilter && matchesSearch;
+    });
+  }, [allTrips, filter, searchQuery]);
 
   return (
     <Screen backgroundColor={Colors.background} safeAreaTop={false} safeAreaBottom={false}>
-      {/* ─── Header ─── */}
-      <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
-        <Animated.View style={headerStyle}>
-          <View style={styles.headerTop}>
+      {/* ─── Top Header (Screen 10 - Ticket Hub) ─── */}
+      <View style={[styles.headerContainer, { paddingTop: insets.top + Spacing.base }]}>
+        <View style={styles.headerTopRow}>
+          <View style={styles.headerTitleLeft}>
             <View>
-              <Text variant="headlineSmall" style={styles.headerTitle}>
-                Travel History
-              </Text>
-              <Text variant="bodySmall" style={styles.headerSubtitle}>
-                Your journey records
-              </Text>
+              <Text style={styles.screenTitle}>{t('tickets.title')}</Text>
+              <Text style={styles.screenSubtitle}>{t('tickets.subtitle')}</Text>
             </View>
-            <Pressable
-              style={({ pressed }) => [styles.filterButton, pressed && { opacity: 0.85 }]}
-              onPress={() => triggerHaptic()}
-            >
-              <Filter size={18} color={Colors.textOnPrimary} strokeWidth={2.5} />
-            </Pressable>
           </View>
 
-          {/* Search bar */}
-          <View style={styles.searchContainer}>
-            <Search size={20} color={Colors.textTertiary} strokeWidth={2} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search routes, stops..."
-              placeholderTextColor={Colors.textTertiary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            {searchQuery.length > 0 && (
-              <Pressable style={styles.searchClear} onPress={handleClearSearch} hitSlop={8}>
-                <X size={18} color={Colors.textSecondary} strokeWidth={2} />
-              </Pressable>
-            )}
-          </View>
-        </Animated.View>
+          {/* Quick Wallet Link */}
+          <Pressable
+            style={({ pressed }) => [styles.walletHeaderPill, pressed && styles.btnPressed]}
+            onPress={() => {
+              triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/wallet');
+            }}
+            accessibilityLabel={t('tickets.walletBalance')}
+            accessibilityRole="button"
+          >
+            <Wallet size={15} color="#15803D" strokeWidth={2.4} />
+            <Text style={styles.walletHeaderAmount}>₹{walletBalance.toFixed(2)}</Text>
+          </Pressable>
+        </View>
       </View>
 
-      {/* ─── Stats Summary ─── */}
-      <Animated.View style={[styles.statsContainer, statsStyle]}>
-        <Card style={styles.statsCard}>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <View style={[styles.statIcon, { backgroundColor: Colors.primaryLight }]}>
-                <Bus size={18} color={Colors.primary} strokeWidth={2.5} />
-              </View>
-              <Text variant="titleLarge" style={styles.statValue}>
-                {stats.totalTrips}
-              </Text>
-              <Text variant="caption" color={Colors.textTertiary}>
-                Trips
-              </Text>
-            </View>
-
-            <View style={styles.statDivider} />
-
-            <View style={styles.statItem}>
-              <View style={[styles.statIcon, { backgroundColor: Colors.successLight }]}>
-                <IndianRupee size={18} color={Colors.success} strokeWidth={2.5} />
-              </View>
-              <Text variant="titleLarge" style={styles.statValue}>
-                {stats.totalSpent}
-              </Text>
-              <Text variant="caption" color={Colors.textTertiary}>
-                Spent
-              </Text>
-            </View>
-
-            <View style={styles.statDivider} />
-
-            <View style={styles.statItem}>
-              <View style={[styles.statIcon, { backgroundColor: Colors.warningLight }]}>
-                <Timer size={18} color={Colors.warning} strokeWidth={2.5} />
-              </View>
-              <Text variant="titleLarge" style={styles.statValue}>
-                {stats.totalHours}h {stats.totalMins}m
-              </Text>
-              <Text variant="caption" color={Colors.textTertiary}>
-                Travelled
-              </Text>
-            </View>
-          </View>
-        </Card>
-      </Animated.View>
-
-      {/* ─── Filter Chips ─── */}
-      <View style={styles.filterRow}>
-        <Chip
-          label="All"
-          selected={filter === 'all'}
-          onPress={() => handleFilterChange('all')}
-        />
-        <Chip
-          label="Completed"
-          selected={filter === 'completed'}
-          onPress={() => handleFilterChange('completed')}
-        />
-        <Chip
-          label="Active"
-          selected={filter === 'active'}
-          onPress={() => handleFilterChange('active')}
-        />
-      </View>
-
-      {/* ─── Trip List ─── */}
-      <Animated.ScrollView
-        style={listStyle}
-        contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 100 }]}
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 95 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
       >
-        {loading ? (
-          <TripListSkeleton />
-        ) : filteredTrips.length === 0 ? (
-          <EmptyState
-            icon={<Search size={32} color={Colors.textTertiary} strokeWidth={1.5} />}
-            title="No trips found"
-            message={searchQuery ? "Try a different search term" : "Your travel history will appear here"}
+        {/* ─── Hero Action: Get / Buy Digital Ticket ─── */}
+        <View style={styles.heroBannerCard}>
+          <View style={styles.heroBannerLeft}>
+            <View style={styles.heroBadgeRow}>
+              <View style={styles.instantBadge}>
+                <Ticket size={12} color="#166534" strokeWidth={2.4} />
+                <Text style={styles.instantBadgeText}>E-TICKET</Text>
+              </View>
+              <Text style={styles.heroCashlessTag}>Cashless & Instant</Text>
+            </View>
+
+            <Text style={styles.heroTitle}>{t('tickets.bookPassNow')}</Text>
+            <Text style={styles.heroSubtitle}>
+              {t('tickets.subtitle')}
+            </Text>
+
+            <Pressable
+              style={({ pressed }) => [styles.getTicketActionBtn, pressed && styles.btnPressed]}
+              onPress={() => {
+                triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
+                router.push('/get-ticket');
+              }}
+              accessibilityLabel={t('tickets.getTicket')}
+              accessibilityRole="button"
+            >
+              <Plus size={16} color="#FFFFFF" strokeWidth={2.8} />
+              <Text style={styles.getTicketActionBtnText}>{t('tickets.getTicket')}</Text>
+              <ArrowRight size={16} color="#FFFFFF" strokeWidth={2.4} />
+            </Pressable>
+          </View>
+
+          <View style={styles.heroBannerRight}>
+            <View style={styles.heroIconCircle}>
+              <QrCode size={36} color="#1B5E20" strokeWidth={2} />
+            </View>
+          </View>
+        </View>
+
+        {/* ─── Section Header: My Tickets & History ─── */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>{t('tickets.myTickets')}</Text>
+          <Text style={styles.sectionCountBadge}>{allTrips.length}</Text>
+        </View>
+
+        {/* Search Bar */}
+        <View style={styles.searchBar}>
+          <Search size={18} color={Colors.textTertiary} strokeWidth={2.2} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t('tickets.searchTickets')}
+            placeholderTextColor={Colors.textTertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
+          {searchQuery.length > 0 && (
+            <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+              <X size={16} color={Colors.textTertiary} strokeWidth={2} />
+            </Pressable>
+          )}
+        </View>
+
+        {/* Filter Chips */}
+        <View style={styles.filterRow}>
+          {(['All', 'Active', 'Completed'] as FilterType[]).map((f) => {
+            const isSelected = filter === f;
+            const filterLabel =
+              f === 'All'
+                ? t('tickets.all')
+                : f === 'Active'
+                ? t('tickets.active')
+                : t('tickets.completed');
+            return (
+              <Pressable
+                key={f}
+                style={[styles.filterChip, isSelected && styles.filterChipActive]}
+                onPress={() => {
+                  triggerHaptic();
+                  setFilter(f);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    isSelected && styles.filterChipTextActive,
+                  ]}
+                >
+                  {filterLabel}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        {filteredTrips.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconCircle}>
+              <Bus size={32} color={Colors.textTertiary} strokeWidth={1.8} />
+            </View>
+            <Text style={styles.emptyTitle}>{t('tickets.noTickets')}</Text>
+            <Text style={styles.emptySubtitle}>{t('tickets.noTicketsDesc')}</Text>
+          </View>
         ) : (
-          groupedTrips.map(([date, dateTrips]) => (
-            <View key={date} style={styles.dateGroup}>
-              {/* Date header */}
-              <View style={styles.dateHeader}>
-                <View style={styles.dateIcon}>
-                  <Calendar size={14} color={Colors.primary} strokeWidth={2.5} />
+          filteredTrips.map((trip) => (
+            <Pressable
+              key={trip.id}
+              style={({ pressed }) => [styles.tripCard, pressed && styles.cardPressed]}
+              onPress={() => {
+                triggerHaptic();
+                let targetTicket = trip.digitalTicket;
+                if (!targetTicket) {
+                  const isCompleted = trip.status === 'Completed';
+                  const pastTime = Date.now() - 86400000 * 5;
+                  const ticketId = `CR-20250612-${trip.id.replace('trip-', '7767')}`;
+                  const issuedAt = new Date(pastTime).toISOString();
+                  const validUntil = new Date(pastTime + 4 * 3600000).toISOString();
+                  const qrPayload = buildSharedTicketPayload({
+                    ticketId,
+                    fromStationName: trip.fromStop,
+                    toStationName: trip.toStop,
+                    fare: trip.fare,
+                    currency: 'INR',
+                    passengerDisplayName: 'Passenger',
+                    status: isCompleted ? 'expired' : 'active',
+                    issuedAt,
+                    validUntil,
+                  });
+                  targetTicket = {
+                    ticketId,
+                    fromStationId: trip.fromStop.toLowerCase().replace(/\s+/g, '-'),
+                    fromStationName: trip.fromStop,
+                    toStationId: trip.toStop.toLowerCase().replace(/\s+/g, '-'),
+                    toStationName: trip.toStop,
+                    fare: trip.fare,
+                    ticketType: 'Adult',
+                    issuedAt,
+                    validUntil,
+                    status: isCompleted ? 'EXPIRED' : 'VALID',
+                    routeNumber: trip.routeNumber,
+                    routeName: trip.routeName,
+                    durationMinutes: trip.durationMinutes,
+                    distanceKm: trip.distanceKm,
+                    qrPayload,
+                  };
+                }
+                router.push({
+                  pathname: '/ticket-details',
+                  params: { ticketJson: JSON.stringify(targetTicket) },
+                });
+              }}
+            >
+              {/* Top Row: Route & Fare */}
+              <View style={styles.cardTopRow}>
+                <View style={styles.busIconBadge}>
+                  <Image
+                    source={require('@/assets/images/illustrations/bus_asset.png')}
+                    style={styles.busAssetImg}
+                    resizeMode="contain"
+                  />
                 </View>
-                <Text variant="titleSmall" color={Colors.primary}>
-                  {formatDateHeader(date)}
-                </Text>
-                <Text variant="caption" color={Colors.textTertiary} style={styles.dateCount}>
-                  {dateTrips.length} {dateTrips.length === 1 ? 'trip' : 'trips'}
-                </Text>
+
+                <View style={styles.routeDetails}>
+                  <View style={styles.routeBadgeRow}>
+                    <View style={styles.routeBadge}>
+                      <Text style={styles.routeBadgeText}>{`${t('common.route')} ${trip.routeNumber}`}</Text>
+                    </View>
+                    <Text style={styles.routeName}>{trip.routeName}</Text>
+                  </View>
+                  <Text style={styles.tripDateTime}>{trip.dateTime}</Text>
+                </View>
+
+                <Text style={styles.fareAmount}>₹{trip.fare.toFixed(2)}</Text>
               </View>
 
-              {/* Trip cards */}
-              {dateTrips.map((trip, idx) => (
-                <TripCard
-                  key={trip.id}
-                  trip={trip}
-                  onRepeat={() => handleRepeatJourney(trip)}
-                  index={idx}
-                />
-              ))}
-            </View>
+              {/* Dotted Divider */}
+              <View style={styles.dottedDivider} />
+
+              {/* Bottom Row: Plate, Duration, Distance & Status */}
+              <View style={styles.cardBottomRow}>
+                <View style={styles.tripMetrics}>
+                  <Text style={styles.busPlate}>{trip.busPlate}</Text>
+                  <Text style={styles.metricDot}>•</Text>
+                  <Text style={styles.tripDuration}>
+                    {`${trip.durationMinutes} ${t('common.mins')}`}
+                  </Text>
+                  <Text style={styles.metricDot}>•</Text>
+                  <Text style={styles.tripDistance}>{`${trip.distanceKm} ${t('common.km')}`}</Text>
+                </View>
+
+                <View style={styles.statusAndAction}>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      trip.status === 'In Journey' && { backgroundColor: '#E0F2FE' },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.statusBadgeText,
+                        trip.status === 'In Journey' && { color: '#0369A1' },
+                      ]}
+                    >
+                      {trip.status === 'In Journey'
+                        ? (t('ticketDetails.inJourney') || 'In Journey')
+                        : trip.status === 'Completed'
+                        ? t('tickets.completed')
+                        : trip.status === 'Active'
+                        ? t('tickets.active')
+                        : trip.status}
+                    </Text>
+                  </View>
+                  <ChevronRight size={16} color={Colors.textTertiary} strokeWidth={2.4} />
+                </View>
+              </View>
+            </Pressable>
           ))
         )}
-      </Animated.ScrollView>
+      </ScrollView>
     </Screen>
   );
 }
 
-// ─── Trip Card Component ─────────────────────────────────────────────────────
-function TripCard({
-  trip,
-  onRepeat,
-  index,
-}: {
-  trip: Trip;
-  onRepeat: () => void;
-  index: number;
-}) {
-  const cardOpacity = useSharedValue(0);
-  const cardTranslateY = useSharedValue(16);
-
-  useEffect(() => {
-    cardOpacity.value = withDelay(
-      index * 80,
-      withTiming(1, { duration: 400, easing: Easing.out(Easing.ease) }),
-    );
-    cardTranslateY.value = withDelay(
-      index * 80,
-      withSpring(0, { damping: 16, stiffness: 100 }),
-    );
-
-    return () => {
-      cancelAnimation(cardOpacity);
-      cancelAnimation(cardTranslateY);
-    };
-  }, [index]);
-
-  const cardStyle = useAnimatedStyle(() => ({
-    opacity: cardOpacity.value,
-    transform: [{ translateY: cardTranslateY.value }],
-  }));
-
-  return (
-    <Animated.View style={cardStyle}>
-      <Card style={styles.tripCard} padding={0} onPress={onRepeat}>
-        {/* Route color strip */}
-        <View style={[styles.tripColorStrip, { backgroundColor: trip.route_color }]} />
-
-        <View style={styles.tripCardBody}>
-          {/* Top row: route badge + status */}
-          <View style={styles.tripTopRow}>
-            <View style={styles.tripRouteInfo}>
-              <View style={[styles.tripRouteBadge, { backgroundColor: trip.route_color }]}>
-                <Text variant="caption" style={styles.tripRouteText}>
-                  {trip.route_number}
-                </Text>
-              </View>
-              <View style={styles.tripRouteNameContainer}>
-                <Text variant="titleSmall" numberOfLines={1}>
-                  {trip.route_name}
-                </Text>
-                <Badge
-                  label={trip.route_type.toUpperCase()}
-                  variant="neutral"
-                />
-              </View>
-            </View>
-            {trip.status === 'completed' && (
-              <View style={styles.statusBadge}>
-                <CircleDot size={12} color={Colors.success} strokeWidth={2.5} />
-                <Text variant="caption" color={Colors.success} style={styles.statusText}>
-                  Done
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* From → To */}
-          <View style={styles.tripRoute}>
-            <View style={styles.tripEndpoint}>
-              <View style={[styles.tripDot, { backgroundColor: trip.route_color }]} />
-              <Text variant="bodyMedium" numberOfLines={1} style={styles.tripStopName}>
-                {trip.from_stop}
-              </Text>
-            </View>
-            <View style={styles.tripConnector}>
-              <View style={styles.tripConnectorLine} />
-              <ArrowRight size={14} color={Colors.textTertiary} strokeWidth={2} />
-            </View>
-            <View style={styles.tripEndpoint}>
-              <View style={[styles.tripDot, { backgroundColor: trip.route_color, borderRadius: 0 }]} />
-              <Text variant="bodyMedium" numberOfLines={1} style={styles.tripStopName}>
-                {trip.to_stop}
-              </Text>
-            </View>
-          </View>
-
-          {/* Stats row */}
-          <View style={styles.tripStatsRow}>
-            {/* Time */}
-            <View style={styles.tripStat}>
-              <Clock size={14} color={Colors.textTertiary} strokeWidth={2} />
-              <Text variant="bodySmall" color={Colors.textSecondary}>
-                {trip.travel_time}
-              </Text>
-            </View>
-
-            {/* Duration */}
-            <View style={styles.tripStat}>
-              <Timer size={14} color={Colors.textTertiary} strokeWidth={2} />
-              <Text variant="bodySmall" color={Colors.textSecondary}>
-                {trip.duration_mins} min
-              </Text>
-            </View>
-
-            {/* Fare */}
-            <View style={styles.tripStat}>
-              <IndianRupee size={14} color={Colors.textTertiary} strokeWidth={2} />
-              <Text variant="bodySmall" color={Colors.textSecondary} style={styles.tripFareText}>
-                {trip.amount}
-              </Text>
-            </View>
-
-            {/* Repeat journey button */}
-            <Pressable
-              style={({ pressed }) => [styles.repeatButton, pressed && styles.repeatButtonPressed]}
-              onPress={onRepeat}
-            >
-              <Repeat2 size={15} color={Colors.primary} strokeWidth={2.5} />
-              <Text variant="labelSmall" color={Colors.primary} style={styles.repeatText}>
-                Repeat
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </Card>
-    </Animated.View>
-  );
-}
-
-// ─── Skeleton ────────────────────────────────────────────────────────────────
-function TripListSkeleton() {
-  return (
-    <View style={styles.skeletonContainer}>
-      {[0, 1, 2, 3].map((i) => (
-        <Card key={i} style={styles.tripCard} padding={0}>
-          <View style={[styles.tripColorStrip, { backgroundColor: Colors.outline }]} />
-          <View style={styles.tripCardBody}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.md }}>
-              <Skeleton width={48} height={24} borderRadius={6} />
-              <Skeleton width={180} height={16} borderRadius={4} />
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.md }}>
-              <Skeleton width={8} height={8} borderRadius={4} />
-              <Skeleton width={120} height={14} borderRadius={4} />
-            </View>
-            <View style={{ flexDirection: 'row', gap: Spacing.lg }}>
-              <Skeleton width={50} height={12} borderRadius={4} />
-              <Skeleton width={50} height={12} borderRadius={4} />
-              <Skeleton width={40} height={12} borderRadius={4} />
-            </View>
-          </View>
-        </Card>
-      ))}
-    </View>
-  );
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function formatDateHeader(dateStr: string): string {
-  const date = new Date(dateStr);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  if (date.toDateString() === today.toDateString()) return 'Today';
-  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
-  return date.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
-}
-
-// ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  // ─── Header ───
-  header: {
-    backgroundColor: Colors.primaryDark,
-    paddingBottom: Spacing.lg,
-    paddingHorizontal: Spacing.base,
-    borderBottomLeftRadius: Radius.bottomSheet,
-    borderBottomRightRadius: Radius.bottomSheet,
+  headerContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.sm,
+    backgroundColor: Colors.background,
   },
-  headerTop: {
+  headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.base,
   },
-  headerTitle: {
-    color: Colors.textOnPrimary,
+  headerTitleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    marginRight: 10,
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.low,
+  },
+  walletHeaderPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: Radius.pill,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    ...Shadows.low,
+  },
+  walletHeaderAmount: {
+    fontSize: 13,
     fontFamily: FontFamily.bold,
+    fontWeight: '700',
+    color: '#15803D',
   },
-  headerSubtitle: {
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 2,
+  heroBannerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderRadius: Radius.card,
+    padding: Spacing.base,
+    borderWidth: 1.5,
+    borderColor: '#86EFAC',
+    marginBottom: Spacing.lg,
+    ...Shadows.low,
   },
-  filterButton: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.full,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+  heroBannerLeft: {
+    flex: 1,
+    paddingRight: 10,
+  },
+  heroBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  instantBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#BBF7D0',
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: Radius.pill,
+    gap: 4,
+  },
+  instantBadgeText: {
+    fontSize: 9.5,
+    fontFamily: FontFamily.bold,
+    fontWeight: '700',
+    color: '#166534',
+    letterSpacing: 0.5,
+  },
+  heroCashlessTag: {
+    fontSize: 11,
+    fontFamily: FontFamily.medium,
+    fontWeight: '500',
+    color: '#15803D',
+  },
+  heroTitle: {
+    fontSize: 18,
+    fontFamily: FontFamily.bold,
+    fontWeight: '700',
+    color: '#14532D',
+    marginBottom: 4,
+  },
+  heroSubtitle: {
+    fontSize: 12,
+    fontFamily: FontFamily.regular,
+    color: '#374151',
+    lineHeight: 17,
+    marginBottom: 12,
+  },
+  getTicketActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#15803D',
+    paddingHorizontal: 15,
+    paddingVertical: 8.5,
+    borderRadius: Radius.pill,
+    gap: 6,
+    ...Shadows.low,
+  },
+  getTicketActionBtnText: {
+    fontSize: 13,
+    fontFamily: FontFamily.bold,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
+  },
+  heroBannerRight: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  // ─── Search ───
-  searchContainer: {
+  heroIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontFamily: FontFamily.bold,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  sectionCountBadge: {
+    fontSize: 12,
+    fontFamily: FontFamily.medium,
+    color: Colors.textSecondary,
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: Radius.pill,
+  },
+  screenTitle: {
+    fontSize: 22,
+    fontFamily: FontFamily.bold,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 2,
+  },
+  screenSubtitle: {
+    fontSize: 12.5,
+    fontFamily: FontFamily.regular,
+    color: Colors.textSecondary,
+  },
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    borderRadius: Radius.input,
+    borderRadius: Radius.pill,
     paddingHorizontal: Spacing.base,
-    paddingVertical: 2,
-    minHeight: 48,
+    paddingVertical: 11,
+    borderWidth: 1,
+    borderColor: '#E8ECF0',
+    marginBottom: Spacing.base,
+    gap: Spacing.sm,
     ...Shadows.low,
   },
   searchInput: {
     flex: 1,
+    fontSize: 14,
     fontFamily: FontFamily.regular,
-    fontSize: 15,
     color: Colors.textPrimary,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: 0,
   },
-  searchClear: {
-    padding: Spacing.xs,
-  },
-
-  // ─── Stats ───
-  statsContainer: {
-    paddingHorizontal: Spacing.base,
-    marginTop: -Spacing.sm,
-  },
-  statsCard: {
-    ...Shadows.medium,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.sm,
-  },
-  statValue: {
-    fontFamily: FontFamily.bold,
-    marginBottom: 2,
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: Colors.divider,
-  },
-
-  // ─── Filter Chips ───
   filterRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.base,
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
-
-  // ─── List ───
-  listContent: {
-    paddingHorizontal: Spacing.base,
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: Radius.pill,
+    backgroundColor: '#EEF2F6',
   },
-  dateGroup: {
-    marginBottom: Spacing.lg,
+  filterChipActive: {
+    backgroundColor: '#2E7D32',
   },
-  dateHeader: {
+  filterChipText: {
+    fontSize: 13,
+    fontFamily: FontFamily.semiBold,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  filterChipTextActive: {
+    color: Colors.surface,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    gap: Spacing.md,
+  },
+  tripCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    padding: Spacing.base,
+    borderWidth: 1,
+    borderColor: '#EFF1F3',
+    ...Shadows.low,
+  },
+  cardTopRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    alignItems: 'flex-start',
+    gap: Spacing.md,
   },
-  dateIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.primaryLight,
+  busIconBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#E8F5E9',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dateCount: {
-    marginLeft: 'auto',
+  busAssetImg: {
+    width: 28,
+    height: 28,
   },
-
-  // ─── Trip Card ───
-  tripCard: {
-    overflow: 'hidden',
-    marginBottom: Spacing.md,
-    ...Shadows.low,
+  routeDetails: {
+    flex: 1,
   },
-  tripColorStrip: {
-    height: 4,
-    width: '100%',
+  routeBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
   },
-  tripCardBody: {
-    padding: Spacing.base,
+  routeBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
-  tripTopRow: {
+  routeBadgeText: {
+    fontSize: 11,
+    fontFamily: FontFamily.bold,
+    fontWeight: '700',
+    color: '#2E7D32',
+  },
+  routeName: {
+    fontSize: 14,
+    fontFamily: FontFamily.semiBold,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    flex: 1,
+  },
+  tripDateTime: {
+    fontSize: 12,
+    fontFamily: FontFamily.regular,
+    color: Colors.textTertiary,
+  },
+  fareAmount: {
+    fontSize: 16,
+    fontFamily: FontFamily.bold,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  dottedDivider: {
+    height: 1,
+    backgroundColor: '#EFF1F3',
+    marginVertical: Spacing.sm + 2,
+  },
+  cardBottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.md,
   },
-  tripRouteInfo: {
+  tripMetrics: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
-    flex: 1,
+    gap: 5,
   },
-  tripRouteBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm,
-    minWidth: 52,
-    alignItems: 'center',
+  busPlate: {
+    fontSize: 12,
+    fontFamily: FontFamily.semiBold,
+    fontWeight: '600',
+    color: Colors.textSecondary,
   },
-  tripRouteText: {
-    color: Colors.textOnPrimary,
-    fontFamily: FontFamily.bold,
-    fontSize: 11,
-    fontWeight: '700',
+  metricDot: {
+    fontSize: 12,
+    color: Colors.textTertiary,
   },
-  tripRouteNameContainer: {
-    flex: 1,
+  tripDuration: {
+    fontSize: 12,
+    fontFamily: FontFamily.regular,
+    color: Colors.textTertiary,
+  },
+  tripDistance: {
+    fontSize: 12,
+    fontFamily: FontFamily.regular,
+    color: Colors.textTertiary,
+  },
+  statusAndAction: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: 6,
   },
   statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.successLight,
-    paddingHorizontal: Spacing.sm,
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 9,
     paddingVertical: 3,
     borderRadius: Radius.pill,
   },
-  statusText: {
+  statusBadgeText: {
+    fontSize: 11,
+    fontFamily: FontFamily.semiBold,
     fontWeight: '600',
+    color: '#2E7D32',
   },
-
-  // ─── Route ───
-  tripRoute: {
-    flexDirection: 'row',
+  cardPressed: {
+    transform: [{ scale: 0.985 }],
+    opacity: 0.92,
+  },
+  emptyContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xxl,
+  },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#F5F7FA',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: Spacing.md,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
   },
-  tripEndpoint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    flex: 1,
+  emptyTitle: {
+    fontSize: 16,
+    fontFamily: FontFamily.semiBold,
+    color: Colors.textPrimary,
+    marginBottom: 4,
   },
-  tripDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: Colors.surface,
-    ...Shadows.low,
+  emptySubtitle: {
+    fontSize: 13,
+    fontFamily: FontFamily.regular,
+    color: Colors.textTertiary,
   },
-  tripStopName: {
-    flex: 1,
+  pressed: {
+    opacity: 0.75,
   },
-  tripConnector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.xs,
-  },
-  tripConnectorLine: {
-    width: 16,
-    height: 1.5,
-    backgroundColor: Colors.outline,
-    marginRight: 2,
-  },
-
-  // ─── Trip Stats ───
-  tripStatsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.lg,
-  },
-  tripStat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  tripFareText: {
-    fontWeight: '600',
-  },
-  repeatButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.primaryLight,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.pill,
-    marginLeft: 'auto',
-  },
-  repeatButtonPressed: {
-    transform: [{ scale: 0.95 }],
-    opacity: 0.85,
-  },
-  repeatText: {
-    fontWeight: '600',
-  },
-
-  // ─── Skeleton ───
-  skeletonContainer: {
-    gap: Spacing.md,
+  btnPressed: {
+    transform: [{ scale: 0.96 }],
+    opacity: 0.92,
   },
 });

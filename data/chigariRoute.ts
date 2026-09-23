@@ -1,0 +1,4537 @@
+import type { Coordinates, BRTSStop, ChigariRoute, ChigariBus } from '@/types/transit';
+
+// Default map viewport framing the entire Hubballi-Dharwad BRTS Corridor (~30 km)
+export const HDBRTS_MAP_REGION = {
+  latitude: 15.4024,
+  longitude: 75.0774,
+  latitudeDelta: 0.17,
+  longitudeDelta: 0.17,
+};
+
+// Demo user location near BVB / KLE Tech BRTS station
+export const DEMO_USER_LOCATION: Coordinates & { title: string; subtitle: string } = {
+  latitude: 15.3678,
+  longitude: 75.1215,
+  title: 'You are here',
+  subtitle: 'Near BVB College / KLE Tech BRTS Station (2 min walk)',
+};
+
+// ─── 36 Official Verified HDBRTS Stations (Topology & Branch Structure) ──────
+// Directly from official HDBRTS Network Diagram (Version 0.3):
+// - Trunk Corridor: Dharwad BRTS Terminal (02) ➔ Hosur Cross (30)
+// - Dharwad North: Dharwad New Bus Stand (01)
+// - Hubballi Branch A: Hosur Cross ➔ Gokul Bus Station (31)
+// - Hubballi Branch B: Hosur Cross ➔ Rani Channamma Circle (32) ➔ HDMC (33) ➔ Ambedkar Circle (34) ➔ Hubballi CBT (35)
+// - Hubballi Branch C: Ambedkar Circle ➔ Hubballi Railway Station (36)
+export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
+  {
+    "id": "hdbrts-stop-01",
+    "order": 1,
+    "name": "Dharwad New Bus Stand",
+    "kannadaName": "ಧಾರವಾಡ ಹೊಸ ಬಸ್ ನಿಲ್ದಾಣ",
+    "aliases": [
+      "Dharwad New Bus Station",
+      "New Bus Stand Dharwad",
+      "Dharwad New Busstand"
+    ],
+    "latitude": 15.4665,
+    "longitude": 75.0142,
+    "section": "Dharwad",
+    "isMajorTerminal": true,
+    "terminalType": "BRTS Terminal without Stop",
+    "typeBadge": "Terminal",
+    "tagline": "Northern Terminus & Intercity Hub",
+    "branch": "Dharwad_North",
+    "servedServices": [
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 26086,
+    "perpendicularDistance": 856.9
+  },
+  {
+    "id": "hdbrts-stop-02",
+    "order": 2,
+    "name": "Dharwad BRTS Terminal",
+    "kannadaName": "ಧಾರವಾಡ ಬಿಆರ್‌ಟಿಎಸ್ ಟರ್ಮಿನಲ್",
+    "aliases": [
+      "Dharwad BRTS Terminal (CBT)",
+      "Dharwad BRTS",
+      "Dharwad CBT",
+      "CBT Dharwad"
+    ],
+    "latitude": 15.46016,
+    "longitude": 75.009429,
+    "section": "Dharwad",
+    "isMajorTerminal": true,
+    "terminalType": "End BRTS Terminal",
+    "typeBadge": "BRTS Hub",
+    "tagline": "Main City BRTS Terminus",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A"
+    ],
+    "distanceAlongRoute": 26093,
+    "perpendicularDistance": 13.1
+  },
+  {
+    "id": "hdbrts-stop-03",
+    "order": 3,
+    "name": "Jubilee Circle",
+    "kannadaName": "ಜ್ಯೂಬಿಲಿ ಸರ್ಕಲ್",
+    "aliases": [
+      "Jubilee Circle Dharwad",
+      "Jubilee Circle BRTS"
+    ],
+    "latitude": 15.458058,
+    "longitude": 75.007491,
+    "section": "Dharwad",
+    "terminalType": "BRTS Terminal with Stop",
+    "typeBadge": "Key Junction",
+    "tagline": "Commercial District & Key Junction",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 25275,
+    "perpendicularDistance": 10.7
+  },
+  {
+    "id": "hdbrts-stop-04",
+    "order": 4,
+    "name": "Dharwad Court Circle",
+    "kannadaName": "ಕೋರ್ಟ್ ಸರ್ಕಲ್",
+    "aliases": [
+      "Court Circle",
+      "Court Circle Dharwad",
+      "Court Circle BRTS"
+    ],
+    "latitude": 15.455642,
+    "longitude": 75.007025,
+    "section": "Dharwad",
+    "terminalType": "BRTS Terminal with Stop",
+    "tagline": "District Courts & Administrative Complex",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 24564,
+    "perpendicularDistance": 10.8
+  },
+  {
+    "id": "hdbrts-stop-05",
+    "order": 5,
+    "name": "NTTF",
+    "kannadaName": "ಎನ್‌ಟಿಟಿಎಫ್",
+    "aliases": [
+      "NTTF Dharwad",
+      "NTTF BRTS"
+    ],
+    "latitude": 15.453608,
+    "longitude": 75.00913,
+    "section": "Dharwad",
+    "terminalType": "BRTS Terminal with Stop",
+    "tagline": "Nettur Technical Training Foundation",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 24081,
+    "perpendicularDistance": 17.6
+  },
+  {
+    "id": "hdbrts-stop-06",
+    "order": 6,
+    "name": "Hosayellapur",
+    "kannadaName": "ಹೊಸಯಲ್ಲಾಪುರ",
+    "aliases": [
+      "Hosayellapur Cross",
+      "Hosa Yellapur",
+      "Hosa Yallapura"
+    ],
+    "latitude": 15.449703,
+    "longitude": 75.011221,
+    "section": "Dharwad",
+    "tagline": "Residential & Market Access",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 23595,
+    "perpendicularDistance": 29.6
+  },
+  {
+    "id": "hdbrts-stop-07",
+    "order": 7,
+    "name": "Tollnaka",
+    "kannadaName": "ಟೋಲ್ ನಾಕಾ",
+    "aliases": [
+      "Toll Naka",
+      "Toll Naka Dharwad"
+    ],
+    "latitude": 15.446085,
+    "longitude": 75.012697,
+    "section": "Dharwad",
+    "terminalType": "BRTS Terminal with Stop",
+    "tagline": "Old Toll Junction & Transit Stop",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 22118,
+    "perpendicularDistance": 10.3
+  },
+  {
+    "id": "hdbrts-stop-08",
+    "order": 8,
+    "name": "Vidyagiri",
+    "kannadaName": "ವಿದ್ಯಾಗಿರಿ",
+    "aliases": [
+      "Vidyagiri Dharwad",
+      "JSS College",
+      "Vidyagiri BRTS"
+    ],
+    "latitude": 15.44085,
+    "longitude": 75.016861,
+    "section": "Dharwad",
+    "typeBadge": "Education Hub",
+    "tagline": "JSS Institutions & University Access",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 20860,
+    "perpendicularDistance": 10.8
+  },
+  {
+    "id": "hdbrts-stop-09",
+    "order": 9,
+    "name": "Gandhinagar",
+    "kannadaName": "ಗಾಂಧಿನಗರ",
+    "aliases": [
+      "Ghandhinagar",
+      "Gandhinagar Dharwad",
+      "Ghandhinagar BRTS"
+    ],
+    "latitude": 15.437785,
+    "longitude": 75.019192,
+    "section": "Dharwad",
+    "tagline": "Residential Suburb",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 19908,
+    "perpendicularDistance": 18.3
+  },
+  {
+    "id": "hdbrts-stop-10",
+    "order": 10,
+    "name": "Lakamanahalli",
+    "kannadaName": "ಲಕಮನಹಳ್ಳಿ",
+    "aliases": [
+      "Lakmanahalli",
+      "Lakamanahalli BRTS"
+    ],
+    "latitude": 15.432911,
+    "longitude": 75.024929,
+    "section": "Dharwad",
+    "tagline": "Industrial Area & Residential Sector",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 19063,
+    "perpendicularDistance": 13.7
+  },
+  {
+    "id": "hdbrts-stop-11",
+    "order": 11,
+    "name": "Navalur",
+    "kannadaName": "ನವಲೂರು",
+    "aliases": [
+      "Navalur Village",
+      "Navalur Stop",
+      "Navalur Dharwad"
+    ],
+    "latitude": 15.4245,
+    "longitude": 75.0345,
+    "section": "Dharwad",
+    "tagline": "Suburban Enclave & Industrial Corridor",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 17546,
+    "perpendicularDistance": 143.2
+  },
+  {
+    "id": "hdbrts-stop-12",
+    "order": 12,
+    "name": "Sattur",
+    "kannadaName": "ಸತ್ತೂರು",
+    "aliases": [
+      "Sattur Colony",
+      "Sattur BRTS"
+    ],
+    "latitude": 15.418304,
+    "longitude": 75.042541,
+    "section": "Dharwad",
+    "tagline": "Sattur Colony & Highway Node",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 16450,
+    "perpendicularDistance": 12.2
+  },
+  {
+    "id": "hdbrts-stop-13",
+    "order": 13,
+    "name": "SDM Medical College",
+    "kannadaName": "ಎಸ್‌ಡಿಎಂ ವೈದ್ಯಕೀಯ ಕಾಲೇಜು",
+    "aliases": [
+      "SDM Hospital",
+      "SDM",
+      "SDM Medical",
+      "SDM Hospital BRT Station"
+    ],
+    "latitude": 15.417389,
+    "longitude": 75.047967,
+    "section": "Dharwad",
+    "terminalType": "BRTS Terminal with Stop",
+    "typeBadge": "Healthcare",
+    "tagline": "SDM Hospital & Healthcare Campus",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 15857,
+    "perpendicularDistance": 12.3
+  },
+  {
+    "id": "hdbrts-stop-14",
+    "order": 14,
+    "name": "Navalur Railway Station",
+    "kannadaName": "ನವಲೂರು ರೈಲ್ವೆ ನಿಲ್ದಾಣ",
+    "aliases": [
+      "Navluru Railway Station",
+      "Navalur Railway BRT Station",
+      "Navalur Rly"
+    ],
+    "latitude": 15.415155,
+    "longitude": 75.053843,
+    "section": "Central Corridor",
+    "typeBadge": "Railway Link",
+    "tagline": "Suburban Rail Transit Interchange",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 15185,
+    "perpendicularDistance": 15
+  },
+  {
+    "id": "hdbrts-stop-15",
+    "order": 15,
+    "name": "KMF 1",
+    "kannadaName": "ಕೆಎಂಎಫ್ ೧",
+    "aliases": [
+      "KMF",
+      "KMF Dharwad",
+      "KMF1 BRT Station",
+      "KMF Dairy"
+    ],
+    "latitude": 15.409349,
+    "longitude": 75.060749,
+    "section": "Central Corridor",
+    "tagline": "Karnataka Milk Federation Dairy Center",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 14182,
+    "perpendicularDistance": 15.8
+  },
+  {
+    "id": "hdbrts-stop-16",
+    "order": 16,
+    "name": "Rayapur",
+    "kannadaName": "ರಾಯಪುರ",
+    "aliases": [
+      "Rayapur Depot",
+      "Rayapur BRT Station"
+    ],
+    "latitude": 15.406712,
+    "longitude": 75.065026,
+    "section": "Central Corridor",
+    "typeBadge": "BRTS Depot",
+    "tagline": "BRTS Control Depot & Corridor Center",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 13618,
+    "perpendicularDistance": 15.1
+  },
+  {
+    "id": "hdbrts-stop-17",
+    "order": 17,
+    "name": "ISKCON",
+    "kannadaName": "ಇಸ್ಕಾನ್",
+    "aliases": [
+      "ISKCON Temple",
+      "ISKON BRT Station",
+      "ISKCON Hubballi"
+    ],
+    "latitude": 15.404742,
+    "longitude": 75.070007,
+    "section": "Central Corridor",
+    "tagline": "Spiritual Center & Pilgrimage Node",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 13003,
+    "perpendicularDistance": 39.8
+  },
+  {
+    "id": "hdbrts-stop-18",
+    "order": 18,
+    "name": "RTO",
+    "kannadaName": "ಆರ್‌ಟಿಒ",
+    "aliases": [
+      "RTO Office",
+      "RTO BRT Station",
+      "RTO Navanagar"
+    ],
+    "latitude": 15.400625,
+    "longitude": 75.077294,
+    "section": "Central Corridor",
+    "tagline": "Regional Transport Office & Testing Track",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 12150,
+    "perpendicularDistance": 20.3
+  },
+  {
+    "id": "hdbrts-stop-19",
+    "order": 19,
+    "name": "Navanagar",
+    "kannadaName": "ನವನಗರ",
+    "aliases": [
+      "Navanagara",
+      "Navanagar BRT Station"
+    ],
+    "latitude": 15.39715,
+    "longitude": 75.082543,
+    "section": "Central Corridor",
+    "terminalType": "BRTS Terminal with Stop",
+    "typeBadge": "Sub-Hub",
+    "tagline": "Major Residential Township & Civic Hub",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 11451,
+    "perpendicularDistance": 15.7
+  },
+  {
+    "id": "hdbrts-stop-20",
+    "order": 20,
+    "name": "APMC 3rd Gate",
+    "kannadaName": "ಎಪಿಎಂಸಿ ೩ನೇ ಗೇಟ್",
+    "aliases": [
+      "APMC Gate 3",
+      "APMC",
+      "APMC BRT Station"
+    ],
+    "latitude": 15.39367,
+    "longitude": 75.092154,
+    "section": "Central Corridor",
+    "tagline": "Agricultural Produce Market Access",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 10306,
+    "perpendicularDistance": 23.7
+  },
+  {
+    "id": "hdbrts-stop-21",
+    "order": 21,
+    "name": "Shantiniketan",
+    "kannadaName": "ಶಾಂತಿನಿಕೇತನ",
+    "aliases": [
+      "Shantinikethan",
+      "Shantinikethan BRT Station"
+    ],
+    "latitude": 15.391352,
+    "longitude": 75.098158,
+    "section": "Central Corridor",
+    "tagline": "Residential Sector",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 9631,
+    "perpendicularDistance": 17.8
+  },
+  {
+    "id": "hdbrts-stop-22",
+    "order": 22,
+    "name": "Bairidevarkoppa",
+    "kannadaName": "ಬೈರಿದೇವರಕೊಪ್ಪ",
+    "aliases": [
+      "Biridevarakoppa",
+      "Bhairidevarakoppa",
+      "Bairidevarakoppa BRT Station"
+    ],
+    "latitude": 15.387034,
+    "longitude": 75.105381,
+    "section": "Central Corridor",
+    "tagline": "Transit Village & Outer Enclave",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 8696,
+    "perpendicularDistance": 23
+  },
+  {
+    "id": "hdbrts-stop-23",
+    "order": 23,
+    "name": "Unkal Lake",
+    "kannadaName": "ಉಣಕಲ್ ಕೆರೆ",
+    "aliases": [
+      "Unakal Lake",
+      "Unkal Lake BRT Station"
+    ],
+    "latitude": 15.382329,
+    "longitude": 75.11188,
+    "section": "Central Corridor",
+    "typeBadge": "Scenic Landmark",
+    "tagline": "Lake Promenade & Tourism Destination",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 7805,
+    "perpendicularDistance": 11.4
+  },
+  {
+    "id": "hdbrts-stop-24",
+    "order": 24,
+    "name": "Unkal",
+    "kannadaName": "ಉಣಕಲ್",
+    "aliases": [
+      "Unkal Village",
+      "Unakal Village",
+      "Unkal Village BRT Station"
+    ],
+    "latitude": 15.375645,
+    "longitude": 75.114143,
+    "section": "Central Corridor",
+    "tagline": "Historic Settlement & Local Market",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 6966,
+    "perpendicularDistance": 11.8
+  },
+  {
+    "id": "hdbrts-stop-25",
+    "order": 25,
+    "name": "Unkal Cross",
+    "kannadaName": "ಉಣಕಲ್ ಕ್ರಾಸ್",
+    "aliases": [
+      "Unakal Cross",
+      "Unakal Cross BRT Station"
+    ],
+    "latitude": 15.370132,
+    "longitude": 75.118875,
+    "section": "Central Corridor",
+    "tagline": "Commercial Corridor Gateway",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 6134,
+    "perpendicularDistance": 14.2
+  },
+  {
+    "id": "hdbrts-stop-26",
+    "order": 26,
+    "name": "BVB",
+    "kannadaName": "ಬಿವಿಬಿ",
+    "aliases": [
+      "BVB College",
+      "KLE Tech",
+      "BVB College / KLE Tech",
+      "BVB College BRT Station",
+      "BVBCET"
+    ],
+    "latitude": 15.367615,
+    "longitude": 75.121185,
+    "section": "Central Corridor",
+    "typeBadge": "Tech Campus",
+    "tagline": "KLE Technological University Campus",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 4862,
+    "perpendicularDistance": 15.1
+  },
+  {
+    "id": "hdbrts-stop-27",
+    "order": 27,
+    "name": "Vidyanagar",
+    "kannadaName": "ವಿದ್ಯಾನಗರ",
+    "aliases": [
+      "Vidyanagar Hubli",
+      "Vidyanagar Hubballi",
+      "Vidyanagar BRT Station"
+    ],
+    "latitude": 15.364002,
+    "longitude": 75.124867,
+    "section": "Central Corridor",
+    "typeBadge": "Commercial Hub",
+    "tagline": "Heart of Modern Hubballi Commercial Zone",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 4076,
+    "perpendicularDistance": 14.4
+  },
+  {
+    "id": "hdbrts-stop-28",
+    "order": 28,
+    "name": "KIMS",
+    "kannadaName": "ಕಿಮ್ಸ್",
+    "aliases": [
+      "KIMS Hospital",
+      "KIMS BRT Station",
+      "KMC Cross"
+    ],
+    "latitude": 15.36021,
+    "longitude": 75.12715,
+    "section": "Central Corridor",
+    "terminalType": "BRTS Terminal with Stop",
+    "typeBadge": "Medical Center",
+    "tagline": "Karnataka Institute of Medical Sciences",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 3585,
+    "perpendicularDistance": 12.9
+  },
+  {
+    "id": "hdbrts-stop-29",
+    "order": 29,
+    "name": "Hosur Regional Bus Station",
+    "kannadaName": "ಹೊಸೂರು ಪ್ರಾದೇಶಿಕ ಬಸ್ ನಿಲ್ದಾಣ",
+    "aliases": [
+      "Hosur Regional Terminal",
+      "Hosur Terminal",
+      "Hosur Interchange",
+      "Hosur Interchange BRT Station"
+    ],
+    "latitude": 15.357265,
+    "longitude": 75.128937,
+    "section": "Central Corridor",
+    "typeBadge": "Transit Hub",
+    "tagline": "Major Feeder Interchange & Regional Hub",
+    "branch": "Trunk",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 3196,
+    "perpendicularDistance": 14.9
+  },
+  {
+    "id": "hdbrts-stop-30",
+    "order": 30,
+    "name": "Hosur Cross",
+    "kannadaName": "ಹೊಸೂರು ಕ್ರಾಸ್",
+    "aliases": [
+      "Hosur Circle",
+      "Hosur Circle BRT Station",
+      "Hosur Cross Hubli"
+    ],
+    "latitude": 15.354759,
+    "longitude": 75.130456,
+    "section": "Central Corridor",
+    "terminalType": "BRTS Terminal with Stop",
+    "typeBadge": "Branch Junction",
+    "tagline": "Key Junction: Gokul Branch & Hubballi CBD Corridor",
+    "branch": "Trunk_Junction",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D",
+      "202C"
+    ],
+    "distanceAlongRoute": 2882,
+    "perpendicularDistance": 11.4
+  },
+  {
+    "id": "hdbrts-stop-31",
+    "order": 31,
+    "name": "Gokul Bus Station",
+    "kannadaName": "ಗೋಕುಲ ಬಸ್ ನಿಲ್ದಾಣ",
+    "aliases": [
+      "Hubballi New Bus Stand (Gokul Bus stop)",
+      "Gokul Bus Stop",
+      "Gokul Road Bus Stand",
+      "HDBRTS Hubballi Depot",
+      "Gokul"
+    ],
+    "latitude": 15.349077,
+    "longitude": 75.11809,
+    "section": "Hubballi",
+    "isMajorTerminal": true,
+    "terminalType": "End BRTS Terminal",
+    "typeBadge": "Branch Terminal",
+    "tagline": "Southern Terminus for Service 202C (Gokul Road)",
+    "branch": "Gokul_Branch",
+    "servedServices": [
+      "202C"
+    ],
+    "distanceAlongRoute": 2991,
+    "perpendicularDistance": 1455.1
+  },
+  {
+    "id": "hdbrts-stop-32",
+    "order": 32,
+    "name": "Hubballi Central Bus Stand / Rani Channamma Circle",
+    "kannadaName": "ರಾಣಿ ಚೆನ್ನಮ್ಮ ವೃತ್ತ (ಹಳೆಯ ಬಸ್ ನಿಲ್ದಾಣ)",
+    "aliases": [
+      "Rani Channamma Circle",
+      "Hubli OBS",
+      "Old Bus Station",
+      "Hubli OCBS BRT Station",
+      "Chennamma Circle"
+    ],
+    "latitude": 15.351148,
+    "longitude": 75.13626,
+    "section": "Hubballi",
+    "terminalType": "BRTS Terminal with Stop",
+    "typeBadge": "CBD Hub",
+    "tagline": "Historic City Center & Commercial Node",
+    "branch": "Central_Corridor",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D"
+    ],
+    "distanceAlongRoute": 2121,
+    "perpendicularDistance": 8
+  },
+  {
+    "id": "hdbrts-stop-33",
+    "order": 33,
+    "name": "HDMC",
+    "kannadaName": "ಮಹಾನಗರ ಪಾಲಿಕೆ (ಎಚ್‌ಡಿಎಂಸಿ)",
+    "aliases": [
+      "HDMC BRT Station",
+      "Corporation-H",
+      "Hubli Dharwad Municipal Corporation",
+      "Corporation"
+    ],
+    "latitude": 15.350859,
+    "longitude": 75.140701,
+    "section": "Hubballi",
+    "terminalType": "BRTS Terminal with Stop",
+    "tagline": "Municipal Corporation Headquarters",
+    "branch": "Central_Corridor",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D"
+    ],
+    "distanceAlongRoute": 1580,
+    "perpendicularDistance": 9.4
+  },
+  {
+    "id": "hdbrts-stop-34",
+    "order": 34,
+    "name": "Dr. B R Ambedkar Circle",
+    "kannadaName": "ಡಾ. ಬಿ.ಆರ್. ಅಂಬೇಡ್ಕರ್ ವೃತ್ತ",
+    "aliases": [
+      "DR. B R Ambedkar Circle",
+      "Dr.Ambedkar BRT Station",
+      "Ambedkar Circle",
+      "Dr BR Ambedkar Circle"
+    ],
+    "latitude": 15.352889,
+    "longitude": 75.145389,
+    "section": "Hubballi",
+    "typeBadge": "Branch Junction",
+    "tagline": "Junction for Hubballi Railway Station & CBT",
+    "branch": "Central_Junction",
+    "servedServices": [
+      "200A",
+      "201B",
+      "100D"
+    ],
+    "distanceAlongRoute": 1025,
+    "perpendicularDistance": 5.6
+  },
+  {
+    "id": "hdbrts-stop-35",
+    "order": 35,
+    "name": "Hubballi CBT",
+    "kannadaName": "ಹುಬ್ಬಳ್ಳಿ ಸಿಬಿಟಿ",
+    "aliases": [
+      "CBT / Hubballi Central Bus Terminal",
+      "Hubballi Central Bus Terminal",
+      "CBT",
+      "City Bus Terminus",
+      "Central Bus Terminal",
+      "CBT Hubli"
+    ],
+    "latitude": 15.344637,
+    "longitude": 75.145415,
+    "section": "Hubballi",
+    "isMajorTerminal": true,
+    "terminalType": "End BRTS Terminal",
+    "typeBadge": "CBT Terminal",
+    "tagline": "Main City Bus Terminus (Service 200A Terminus)",
+    "branch": "CBT_Branch",
+    "servedServices": [
+      "200A"
+    ],
+    "distanceAlongRoute": 0,
+    "perpendicularDistance": 28.9
+  },
+  {
+    "id": "hdbrts-stop-36",
+    "order": 36,
+    "name": "Hubballi Railway Station",
+    "kannadaName": "ಹುಬ್ಬಳ್ಳಿ ರೈಲ್ವೆ ನಿಲ್ದಾಣ",
+    "aliases": [
+      "Hubballi Railway BRT Station",
+      "Railway Station-H",
+      "Hubli Railway Station",
+      "SSS Hubballi Junction",
+      "Hubballi Junction"
+    ],
+    "latitude": 15.349537,
+    "longitude": 75.14845,
+    "section": "Hubballi",
+    "isMajorTerminal": true,
+    "terminalType": "End BRTS Terminal",
+    "typeBadge": "Railway Hub",
+    "tagline": "SSS Hubballi Junction (Services 201B & 100D Terminus)",
+    "branch": "Railway_Branch",
+    "servedServices": [
+      "201B",
+      "100D"
+    ],
+    "distanceAlongRoute": 704,
+    "perpendicularDistance": 297.7
+  }
+];
+
+// ─── Real High-Density OSRM Road Coordinates for Official HDBRTS Network ─────
+// Fully audited road network following actual Hubballi-Dharwad road geometry (no straight cuts, no loops)
+export const HDBRTS_CORRIDOR_COORDINATES: Coordinates[] = [
+  {
+    "latitude": 15.344586,
+    "longitude": 75.145151
+  },
+  {
+    "latitude": 15.344882,
+    "longitude": 75.14509
+  },
+  {
+    "latitude": 15.34528,
+    "longitude": 75.145006
+  },
+  {
+    "latitude": 15.345765,
+    "longitude": 75.144882
+  },
+  {
+    "latitude": 15.346147,
+    "longitude": 75.144779
+  },
+  {
+    "latitude": 15.346284,
+    "longitude": 75.145528
+  },
+  {
+    "latitude": 15.347814,
+    "longitude": 75.145437
+  },
+  {
+    "latitude": 15.348598,
+    "longitude": 75.145556
+  },
+  {
+    "latitude": 15.350251,
+    "longitude": 75.145774
+  },
+  {
+    "latitude": 15.350506,
+    "longitude": 75.145802
+  },
+  {
+    "latitude": 15.35127,
+    "longitude": 75.145889
+  },
+  {
+    "latitude": 15.351475,
+    "longitude": 75.145896
+  },
+  {
+    "latitude": 15.352311,
+    "longitude": 75.145855
+  },
+  {
+    "latitude": 15.352704,
+    "longitude": 75.145823
+  },
+  {
+    "latitude": 15.35284,
+    "longitude": 75.145402
+  },
+  {
+    "latitude": 15.352719,
+    "longitude": 75.144925
+  },
+  {
+    "latitude": 15.352704,
+    "longitude": 75.144653
+  },
+  {
+    "latitude": 15.352612,
+    "longitude": 75.14456
+  },
+  {
+    "latitude": 15.352566,
+    "longitude": 75.144346
+  },
+  {
+    "latitude": 15.352399,
+    "longitude": 75.143814
+  },
+  {
+    "latitude": 15.352261,
+    "longitude": 75.14339
+  },
+  {
+    "latitude": 15.352142,
+    "longitude": 75.143161
+  },
+  {
+    "latitude": 15.351939,
+    "longitude": 75.142799
+  },
+  {
+    "latitude": 15.351329,
+    "longitude": 75.1418
+  },
+  {
+    "latitude": 15.351141,
+    "longitude": 75.141562
+  },
+  {
+    "latitude": 15.351047,
+    "longitude": 75.141408
+  },
+  {
+    "latitude": 15.350968,
+    "longitude": 75.14123
+  },
+  {
+    "latitude": 15.350849,
+    "longitude": 75.140947
+  },
+  {
+    "latitude": 15.350838,
+    "longitude": 75.140907
+  },
+  {
+    "latitude": 15.350796,
+    "longitude": 75.140759
+  },
+  {
+    "latitude": 15.350728,
+    "longitude": 75.140515
+  },
+  {
+    "latitude": 15.350638,
+    "longitude": 75.140196
+  },
+  {
+    "latitude": 15.350546,
+    "longitude": 75.139884
+  },
+  {
+    "latitude": 15.350397,
+    "longitude": 75.139268
+  },
+  {
+    "latitude": 15.350342,
+    "longitude": 75.138938
+  },
+  {
+    "latitude": 15.350323,
+    "longitude": 75.138828
+  },
+  {
+    "latitude": 15.350155,
+    "longitude": 75.137938
+  },
+  {
+    "latitude": 15.350125,
+    "longitude": 75.137778
+  },
+  {
+    "latitude": 15.350084,
+    "longitude": 75.137723
+  },
+  {
+    "latitude": 15.35007,
+    "longitude": 75.137686
+  },
+  {
+    "latitude": 15.350062,
+    "longitude": 75.137647
+  },
+  {
+    "latitude": 15.350061,
+    "longitude": 75.137607
+  },
+  {
+    "latitude": 15.350068,
+    "longitude": 75.137567
+  },
+  {
+    "latitude": 15.350089,
+    "longitude": 75.137517
+  },
+  {
+    "latitude": 15.350106,
+    "longitude": 75.137495
+  },
+  {
+    "latitude": 15.350122,
+    "longitude": 75.137475
+  },
+  {
+    "latitude": 15.350164,
+    "longitude": 75.137442
+  },
+  {
+    "latitude": 15.350213,
+    "longitude": 75.137422
+  },
+  {
+    "latitude": 15.350265,
+    "longitude": 75.137415
+  },
+  {
+    "latitude": 15.350363,
+    "longitude": 75.137248
+  },
+  {
+    "latitude": 15.350464,
+    "longitude": 75.137114
+  },
+  {
+    "latitude": 15.350491,
+    "longitude": 75.13707
+  },
+  {
+    "latitude": 15.350565,
+    "longitude": 75.13695
+  },
+  {
+    "latitude": 15.35058,
+    "longitude": 75.136926
+  },
+  {
+    "latitude": 15.350906,
+    "longitude": 75.136449
+  },
+  {
+    "latitude": 15.351024,
+    "longitude": 75.136294
+  },
+  {
+    "latitude": 15.351094,
+    "longitude": 75.136211
+  },
+  {
+    "latitude": 15.35111,
+    "longitude": 75.136192
+  },
+  {
+    "latitude": 15.351247,
+    "longitude": 75.136036
+  },
+  {
+    "latitude": 15.351457,
+    "longitude": 75.135786
+  },
+  {
+    "latitude": 15.351671,
+    "longitude": 75.135508
+  },
+  {
+    "latitude": 15.35173,
+    "longitude": 75.135415
+  },
+  {
+    "latitude": 15.352049,
+    "longitude": 75.134837
+  },
+  {
+    "latitude": 15.352252,
+    "longitude": 75.134363
+  },
+  {
+    "latitude": 15.352384,
+    "longitude": 75.134053
+  },
+  {
+    "latitude": 15.35244,
+    "longitude": 75.133916
+  },
+  {
+    "latitude": 15.352904,
+    "longitude": 75.132839
+  },
+  {
+    "latitude": 15.353057,
+    "longitude": 75.132505
+  },
+  {
+    "latitude": 15.353193,
+    "longitude": 75.132178
+  },
+  {
+    "latitude": 15.353394,
+    "longitude": 75.131764
+  },
+  {
+    "latitude": 15.353433,
+    "longitude": 75.131684
+  },
+  {
+    "latitude": 15.35366,
+    "longitude": 75.131215
+  },
+  {
+    "latitude": 15.353758,
+    "longitude": 75.131057
+  },
+  {
+    "latitude": 15.3538,
+    "longitude": 75.131002
+  },
+  {
+    "latitude": 15.353983,
+    "longitude": 75.13086
+  },
+  {
+    "latitude": 15.354088,
+    "longitude": 75.130778
+  },
+  {
+    "latitude": 15.354169,
+    "longitude": 75.130679
+  },
+  {
+    "latitude": 15.354341,
+    "longitude": 75.130577
+  },
+  {
+    "latitude": 15.354477,
+    "longitude": 75.130497
+  },
+  {
+    "latitude": 15.354555,
+    "longitude": 75.130452
+  },
+  {
+    "latitude": 15.354606,
+    "longitude": 75.130423
+  },
+  {
+    "latitude": 15.354709,
+    "longitude": 75.130363
+  },
+  {
+    "latitude": 15.354734,
+    "longitude": 75.130349
+  },
+  {
+    "latitude": 15.355212,
+    "longitude": 75.130077
+  },
+  {
+    "latitude": 15.355452,
+    "longitude": 75.129942
+  },
+  {
+    "latitude": 15.35557,
+    "longitude": 75.129872
+  },
+  {
+    "latitude": 15.355688,
+    "longitude": 75.129805
+  },
+  {
+    "latitude": 15.355848,
+    "longitude": 75.129714
+  },
+  {
+    "latitude": 15.355883,
+    "longitude": 75.129693
+  },
+  {
+    "latitude": 15.356003,
+    "longitude": 75.129621
+  },
+  {
+    "latitude": 15.356175,
+    "longitude": 75.129512
+  },
+  {
+    "latitude": 15.356349,
+    "longitude": 75.129405
+  },
+  {
+    "latitude": 15.356526,
+    "longitude": 75.129292
+  },
+  {
+    "latitude": 15.356676,
+    "longitude": 75.12919
+  },
+  {
+    "latitude": 15.356988,
+    "longitude": 75.128982
+  },
+  {
+    "latitude": 15.357144,
+    "longitude": 75.128878
+  },
+  {
+    "latitude": 15.357301,
+    "longitude": 75.128779
+  },
+  {
+    "latitude": 15.357426,
+    "longitude": 75.128701
+  },
+  {
+    "latitude": 15.357702,
+    "longitude": 75.12857
+  },
+  {
+    "latitude": 15.357931,
+    "longitude": 75.128436
+  },
+  {
+    "latitude": 15.358698,
+    "longitude": 75.127961
+  },
+  {
+    "latitude": 15.358812,
+    "longitude": 75.127888
+  },
+  {
+    "latitude": 15.35912,
+    "longitude": 75.127682
+  },
+  {
+    "latitude": 15.359517,
+    "longitude": 75.127428
+  },
+  {
+    "latitude": 15.359834,
+    "longitude": 75.127235
+  },
+  {
+    "latitude": 15.359914,
+    "longitude": 75.127186
+  },
+  {
+    "latitude": 15.359993,
+    "longitude": 75.127136
+  },
+  {
+    "latitude": 15.360153,
+    "longitude": 75.127045
+  },
+  {
+    "latitude": 15.360157,
+    "longitude": 75.127043
+  },
+  {
+    "latitude": 15.360474,
+    "longitude": 75.126875
+  },
+  {
+    "latitude": 15.360773,
+    "longitude": 75.12673
+  },
+  {
+    "latitude": 15.360799,
+    "longitude": 75.126715
+  },
+  {
+    "latitude": 15.360898,
+    "longitude": 75.126662
+  },
+  {
+    "latitude": 15.360915,
+    "longitude": 75.126653
+  },
+  {
+    "latitude": 15.361149,
+    "longitude": 75.126521
+  },
+  {
+    "latitude": 15.361287,
+    "longitude": 75.126447
+  },
+  {
+    "latitude": 15.361475,
+    "longitude": 75.126341
+  },
+  {
+    "latitude": 15.361853,
+    "longitude": 75.126138
+  },
+  {
+    "latitude": 15.362021,
+    "longitude": 75.126045
+  },
+  {
+    "latitude": 15.362603,
+    "longitude": 75.125734
+  },
+  {
+    "latitude": 15.362958,
+    "longitude": 75.125537
+  },
+  {
+    "latitude": 15.363194,
+    "longitude": 75.125399
+  },
+  {
+    "latitude": 15.363401,
+    "longitude": 75.125267
+  },
+  {
+    "latitude": 15.363548,
+    "longitude": 75.125152
+  },
+  {
+    "latitude": 15.363681,
+    "longitude": 75.125032
+  },
+  {
+    "latitude": 15.36375,
+    "longitude": 75.124959
+  },
+  {
+    "latitude": 15.363775,
+    "longitude": 75.124931
+  },
+  {
+    "latitude": 15.363814,
+    "longitude": 75.124887
+  },
+  {
+    "latitude": 15.36395,
+    "longitude": 75.124744
+  },
+  {
+    "latitude": 15.363966,
+    "longitude": 75.124728
+  },
+  {
+    "latitude": 15.364309,
+    "longitude": 75.124392
+  },
+  {
+    "latitude": 15.36467,
+    "longitude": 75.124049
+  },
+  {
+    "latitude": 15.364766,
+    "longitude": 75.123957
+  },
+  {
+    "latitude": 15.36483,
+    "longitude": 75.123897
+  },
+  {
+    "latitude": 15.36518,
+    "longitude": 75.123505
+  },
+  {
+    "latitude": 15.365367,
+    "longitude": 75.123303
+  },
+  {
+    "latitude": 15.365554,
+    "longitude": 75.123118
+  },
+  {
+    "latitude": 15.365805,
+    "longitude": 75.122837
+  },
+  {
+    "latitude": 15.366091,
+    "longitude": 75.122545
+  },
+  {
+    "latitude": 15.366276,
+    "longitude": 75.122348
+  },
+  {
+    "latitude": 15.366467,
+    "longitude": 75.12215
+  },
+  {
+    "latitude": 15.366846,
+    "longitude": 75.121766
+  },
+  {
+    "latitude": 15.366915,
+    "longitude": 75.121697
+  },
+  {
+    "latitude": 15.367074,
+    "longitude": 75.121537
+  },
+  {
+    "latitude": 15.367238,
+    "longitude": 75.121376
+  },
+  {
+    "latitude": 15.3675,
+    "longitude": 75.121101
+  },
+  {
+    "latitude": 15.368139,
+    "longitude": 75.12051
+  },
+  {
+    "latitude": 15.368205,
+    "longitude": 75.120456
+  },
+  {
+    "latitude": 15.368253,
+    "longitude": 75.120524
+  },
+  {
+    "latitude": 15.368305,
+    "longitude": 75.120597
+  },
+  {
+    "latitude": 15.368352,
+    "longitude": 75.120663
+  },
+  {
+    "latitude": 15.368279,
+    "longitude": 75.120726
+  },
+  {
+    "latitude": 15.368218,
+    "longitude": 75.120787
+  },
+  {
+    "latitude": 15.367937,
+    "longitude": 75.121067
+  },
+  {
+    "latitude": 15.367707,
+    "longitude": 75.121288
+  },
+  {
+    "latitude": 15.367692,
+    "longitude": 75.121303
+  },
+  {
+    "latitude": 15.367628,
+    "longitude": 75.121363
+  },
+  {
+    "latitude": 15.367434,
+    "longitude": 75.121538
+  },
+  {
+    "latitude": 15.367187,
+    "longitude": 75.121771
+  },
+  {
+    "latitude": 15.367067,
+    "longitude": 75.121881
+  },
+  {
+    "latitude": 15.366942,
+    "longitude": 75.121992
+  },
+  {
+    "latitude": 15.366622,
+    "longitude": 75.122317
+  },
+  {
+    "latitude": 15.366209,
+    "longitude": 75.122754
+  },
+  {
+    "latitude": 15.365933,
+    "longitude": 75.123064
+  },
+  {
+    "latitude": 15.365823,
+    "longitude": 75.123181
+  },
+  {
+    "latitude": 15.365709,
+    "longitude": 75.123302
+  },
+  {
+    "latitude": 15.365295,
+    "longitude": 75.123743
+  },
+  {
+    "latitude": 15.365195,
+    "longitude": 75.123837
+  },
+  {
+    "latitude": 15.365098,
+    "longitude": 75.123935
+  },
+  {
+    "latitude": 15.364961,
+    "longitude": 75.124075
+  },
+  {
+    "latitude": 15.364896,
+    "longitude": 75.124142
+  },
+  {
+    "latitude": 15.364849,
+    "longitude": 75.124077
+  },
+  {
+    "latitude": 15.36483,
+    "longitude": 75.124052
+  },
+  {
+    "latitude": 15.364805,
+    "longitude": 75.124016
+  },
+  {
+    "latitude": 15.364766,
+    "longitude": 75.123957
+  },
+  {
+    "latitude": 15.36483,
+    "longitude": 75.123897
+  },
+  {
+    "latitude": 15.36518,
+    "longitude": 75.123505
+  },
+  {
+    "latitude": 15.365367,
+    "longitude": 75.123303
+  },
+  {
+    "latitude": 15.365554,
+    "longitude": 75.123118
+  },
+  {
+    "latitude": 15.365805,
+    "longitude": 75.122837
+  },
+  {
+    "latitude": 15.366091,
+    "longitude": 75.122545
+  },
+  {
+    "latitude": 15.366276,
+    "longitude": 75.122348
+  },
+  {
+    "latitude": 15.366467,
+    "longitude": 75.12215
+  },
+  {
+    "latitude": 15.366846,
+    "longitude": 75.121766
+  },
+  {
+    "latitude": 15.366915,
+    "longitude": 75.121697
+  },
+  {
+    "latitude": 15.367074,
+    "longitude": 75.121537
+  },
+  {
+    "latitude": 15.367238,
+    "longitude": 75.121376
+  },
+  {
+    "latitude": 15.3675,
+    "longitude": 75.121101
+  },
+  {
+    "latitude": 15.368139,
+    "longitude": 75.12051
+  },
+  {
+    "latitude": 15.368205,
+    "longitude": 75.120456
+  },
+  {
+    "latitude": 15.368519,
+    "longitude": 75.120198
+  },
+  {
+    "latitude": 15.368651,
+    "longitude": 75.120086
+  },
+  {
+    "latitude": 15.368721,
+    "longitude": 75.120027
+  },
+  {
+    "latitude": 15.368822,
+    "longitude": 75.119939
+  },
+  {
+    "latitude": 15.368924,
+    "longitude": 75.119844
+  },
+  {
+    "latitude": 15.368971,
+    "longitude": 75.119801
+  },
+  {
+    "latitude": 15.3691,
+    "longitude": 75.119682
+  },
+  {
+    "latitude": 15.369278,
+    "longitude": 75.119515
+  },
+  {
+    "latitude": 15.369604,
+    "longitude": 75.119196
+  },
+  {
+    "latitude": 15.369662,
+    "longitude": 75.11914
+  },
+  {
+    "latitude": 15.36973,
+    "longitude": 75.119074
+  },
+  {
+    "latitude": 15.36989,
+    "longitude": 75.118919
+  },
+  {
+    "latitude": 15.370052,
+    "longitude": 75.118772
+  },
+  {
+    "latitude": 15.370217,
+    "longitude": 75.118625
+  },
+  {
+    "latitude": 15.370387,
+    "longitude": 75.118484
+  },
+  {
+    "latitude": 15.370558,
+    "longitude": 75.118365
+  },
+  {
+    "latitude": 15.370747,
+    "longitude": 75.118284
+  },
+  {
+    "latitude": 15.370802,
+    "longitude": 75.118259
+  },
+  {
+    "latitude": 15.371304,
+    "longitude": 75.118014
+  },
+  {
+    "latitude": 15.371688,
+    "longitude": 75.117834
+  },
+  {
+    "latitude": 15.371988,
+    "longitude": 75.117705
+  },
+  {
+    "latitude": 15.372213,
+    "longitude": 75.117615
+  },
+  {
+    "latitude": 15.372509,
+    "longitude": 75.117429
+  },
+  {
+    "latitude": 15.372786,
+    "longitude": 75.117257
+  },
+  {
+    "latitude": 15.372813,
+    "longitude": 75.117241
+  },
+  {
+    "latitude": 15.372968,
+    "longitude": 75.117102
+  },
+  {
+    "latitude": 15.373051,
+    "longitude": 75.117025
+  },
+  {
+    "latitude": 15.373142,
+    "longitude": 75.116945
+  },
+  {
+    "latitude": 15.373385,
+    "longitude": 75.116723
+  },
+  {
+    "latitude": 15.373454,
+    "longitude": 75.116659
+  },
+  {
+    "latitude": 15.37353,
+    "longitude": 75.116589
+  },
+  {
+    "latitude": 15.373867,
+    "longitude": 75.116276
+  },
+  {
+    "latitude": 15.374068,
+    "longitude": 75.116068
+  },
+  {
+    "latitude": 15.374149,
+    "longitude": 75.115939
+  },
+  {
+    "latitude": 15.374203,
+    "longitude": 75.115829
+  },
+  {
+    "latitude": 15.374247,
+    "longitude": 75.115709
+  },
+  {
+    "latitude": 15.374296,
+    "longitude": 75.115315
+  },
+  {
+    "latitude": 15.374348,
+    "longitude": 75.1151
+  },
+  {
+    "latitude": 15.374408,
+    "longitude": 75.11492
+  },
+  {
+    "latitude": 15.374492,
+    "longitude": 75.114806
+  },
+  {
+    "latitude": 15.374536,
+    "longitude": 75.114755
+  },
+  {
+    "latitude": 15.374586,
+    "longitude": 75.114718
+  },
+  {
+    "latitude": 15.374788,
+    "longitude": 75.114582
+  },
+  {
+    "latitude": 15.375266,
+    "longitude": 75.114247
+  },
+  {
+    "latitude": 15.375601,
+    "longitude": 75.114043
+  },
+  {
+    "latitude": 15.37581,
+    "longitude": 75.113909
+  },
+  {
+    "latitude": 15.37601,
+    "longitude": 75.113785
+  },
+  {
+    "latitude": 15.376062,
+    "longitude": 75.113762
+  },
+  {
+    "latitude": 15.376215,
+    "longitude": 75.113694
+  },
+  {
+    "latitude": 15.376353,
+    "longitude": 75.11364
+  },
+  {
+    "latitude": 15.376723,
+    "longitude": 75.113516
+  },
+  {
+    "latitude": 15.376826,
+    "longitude": 75.113479
+  },
+  {
+    "latitude": 15.376899,
+    "longitude": 75.113453
+  },
+  {
+    "latitude": 15.377079,
+    "longitude": 75.113399
+  },
+  {
+    "latitude": 15.377216,
+    "longitude": 75.113363
+  },
+  {
+    "latitude": 15.377796,
+    "longitude": 75.113257
+  },
+  {
+    "latitude": 15.377946,
+    "longitude": 75.113225
+  },
+  {
+    "latitude": 15.378115,
+    "longitude": 75.113193
+  },
+  {
+    "latitude": 15.378558,
+    "longitude": 75.113128
+  },
+  {
+    "latitude": 15.378802,
+    "longitude": 75.113122
+  },
+  {
+    "latitude": 15.378961,
+    "longitude": 75.113134
+  },
+  {
+    "latitude": 15.379272,
+    "longitude": 75.113192
+  },
+  {
+    "latitude": 15.379376,
+    "longitude": 75.113222
+  },
+  {
+    "latitude": 15.379465,
+    "longitude": 75.113255
+  },
+  {
+    "latitude": 15.379617,
+    "longitude": 75.11329
+  },
+  {
+    "latitude": 15.379762,
+    "longitude": 75.11331
+  },
+  {
+    "latitude": 15.379971,
+    "longitude": 75.113313
+  },
+  {
+    "latitude": 15.380095,
+    "longitude": 75.11331
+  },
+  {
+    "latitude": 15.380248,
+    "longitude": 75.113303
+  },
+  {
+    "latitude": 15.380335,
+    "longitude": 75.113291
+  },
+  {
+    "latitude": 15.380812,
+    "longitude": 75.113207
+  },
+  {
+    "latitude": 15.381099,
+    "longitude": 75.113133
+  },
+  {
+    "latitude": 15.381586,
+    "longitude": 75.11299
+  },
+  {
+    "latitude": 15.38175,
+    "longitude": 75.112909
+  },
+  {
+    "latitude": 15.381846,
+    "longitude": 75.112861
+  },
+  {
+    "latitude": 15.381996,
+    "longitude": 75.112663
+  },
+  {
+    "latitude": 15.382085,
+    "longitude": 75.112457
+  },
+  {
+    "latitude": 15.382156,
+    "longitude": 75.11218
+  },
+  {
+    "latitude": 15.382166,
+    "longitude": 75.112142
+  },
+  {
+    "latitude": 15.382229,
+    "longitude": 75.111856
+  },
+  {
+    "latitude": 15.382273,
+    "longitude": 75.111659
+  },
+  {
+    "latitude": 15.382389,
+    "longitude": 75.111167
+  },
+  {
+    "latitude": 15.382516,
+    "longitude": 75.110671
+  },
+  {
+    "latitude": 15.382613,
+    "longitude": 75.11028
+  },
+  {
+    "latitude": 15.382703,
+    "longitude": 75.109914
+  },
+  {
+    "latitude": 15.382762,
+    "longitude": 75.109705
+  },
+  {
+    "latitude": 15.382823,
+    "longitude": 75.109519
+  },
+  {
+    "latitude": 15.382889,
+    "longitude": 75.109359
+  },
+  {
+    "latitude": 15.382927,
+    "longitude": 75.109287
+  },
+  {
+    "latitude": 15.382982,
+    "longitude": 75.109182
+  },
+  {
+    "latitude": 15.383113,
+    "longitude": 75.109012
+  },
+  {
+    "latitude": 15.383238,
+    "longitude": 75.108885
+  },
+  {
+    "latitude": 15.383282,
+    "longitude": 75.108851
+  },
+  {
+    "latitude": 15.383422,
+    "longitude": 75.108739
+  },
+  {
+    "latitude": 15.383825,
+    "longitude": 75.108456
+  },
+  {
+    "latitude": 15.384081,
+    "longitude": 75.108275
+  },
+  {
+    "latitude": 15.384358,
+    "longitude": 75.108098
+  },
+  {
+    "latitude": 15.384523,
+    "longitude": 75.107991
+  },
+  {
+    "latitude": 15.385028,
+    "longitude": 75.107593
+  },
+  {
+    "latitude": 15.385106,
+    "longitude": 75.107527
+  },
+  {
+    "latitude": 15.385323,
+    "longitude": 75.107332
+  },
+  {
+    "latitude": 15.385553,
+    "longitude": 75.107092
+  },
+  {
+    "latitude": 15.385619,
+    "longitude": 75.107011
+  },
+  {
+    "latitude": 15.385859,
+    "longitude": 75.10673
+  },
+  {
+    "latitude": 15.386116,
+    "longitude": 75.106395
+  },
+  {
+    "latitude": 15.386477,
+    "longitude": 75.105938
+  },
+  {
+    "latitude": 15.386838,
+    "longitude": 75.105449
+  },
+  {
+    "latitude": 15.387087,
+    "longitude": 75.105107
+  },
+  {
+    "latitude": 15.387337,
+    "longitude": 75.104768
+  },
+  {
+    "latitude": 15.387427,
+    "longitude": 75.10466
+  },
+  {
+    "latitude": 15.387555,
+    "longitude": 75.10449
+  },
+  {
+    "latitude": 15.387594,
+    "longitude": 75.104437
+  },
+  {
+    "latitude": 15.387683,
+    "longitude": 75.104317
+  },
+  {
+    "latitude": 15.387872,
+    "longitude": 75.104048
+  },
+  {
+    "latitude": 15.388051,
+    "longitude": 75.10384
+  },
+  {
+    "latitude": 15.388182,
+    "longitude": 75.103693
+  },
+  {
+    "latitude": 15.388254,
+    "longitude": 75.103616
+  },
+  {
+    "latitude": 15.388461,
+    "longitude": 75.103392
+  },
+  {
+    "latitude": 15.3888,
+    "longitude": 75.102991
+  },
+  {
+    "latitude": 15.388893,
+    "longitude": 75.102885
+  },
+  {
+    "latitude": 15.388951,
+    "longitude": 75.102811
+  },
+  {
+    "latitude": 15.389126,
+    "longitude": 75.102586
+  },
+  {
+    "latitude": 15.389332,
+    "longitude": 75.102262
+  },
+  {
+    "latitude": 15.389487,
+    "longitude": 75.101982
+  },
+  {
+    "latitude": 15.389676,
+    "longitude": 75.101563
+  },
+  {
+    "latitude": 15.390036,
+    "longitude": 75.100764
+  },
+  {
+    "latitude": 15.390268,
+    "longitude": 75.100317
+  },
+  {
+    "latitude": 15.390391,
+    "longitude": 75.100068
+  },
+  {
+    "latitude": 15.390472,
+    "longitude": 75.099883
+  },
+  {
+    "latitude": 15.390503,
+    "longitude": 75.099796
+  },
+  {
+    "latitude": 15.390675,
+    "longitude": 75.09932
+  },
+  {
+    "latitude": 15.390954,
+    "longitude": 75.098659
+  },
+  {
+    "latitude": 15.390983,
+    "longitude": 75.098594
+  },
+  {
+    "latitude": 15.391165,
+    "longitude": 75.098172
+  },
+  {
+    "latitude": 15.391209,
+    "longitude": 75.098084
+  },
+  {
+    "latitude": 15.391255,
+    "longitude": 75.097991
+  },
+  {
+    "latitude": 15.391284,
+    "longitude": 75.097932
+  },
+  {
+    "latitude": 15.391521,
+    "longitude": 75.097389
+  },
+  {
+    "latitude": 15.391564,
+    "longitude": 75.097277
+  },
+  {
+    "latitude": 15.391855,
+    "longitude": 75.096631
+  },
+  {
+    "latitude": 15.392002,
+    "longitude": 75.096316
+  },
+  {
+    "latitude": 15.39214,
+    "longitude": 75.096029
+  },
+  {
+    "latitude": 15.392203,
+    "longitude": 75.095894
+  },
+  {
+    "latitude": 15.392236,
+    "longitude": 75.095826
+  },
+  {
+    "latitude": 15.392345,
+    "longitude": 75.095572
+  },
+  {
+    "latitude": 15.392913,
+    "longitude": 75.094255
+  },
+  {
+    "latitude": 15.393083,
+    "longitude": 75.093785
+  },
+  {
+    "latitude": 15.393112,
+    "longitude": 75.093684
+  },
+  {
+    "latitude": 15.393221,
+    "longitude": 75.093311
+  },
+  {
+    "latitude": 15.393486,
+    "longitude": 75.092266
+  },
+  {
+    "latitude": 15.393877,
+    "longitude": 75.090687
+  },
+  {
+    "latitude": 15.393986,
+    "longitude": 75.090242
+  },
+  {
+    "latitude": 15.39416,
+    "longitude": 75.089631
+  },
+  {
+    "latitude": 15.39424,
+    "longitude": 75.089259
+  },
+  {
+    "latitude": 15.394283,
+    "longitude": 75.08906
+  },
+  {
+    "latitude": 15.39444,
+    "longitude": 75.088318
+  },
+  {
+    "latitude": 15.394502,
+    "longitude": 75.088012
+  },
+  {
+    "latitude": 15.394588,
+    "longitude": 75.087582
+  },
+  {
+    "latitude": 15.39464,
+    "longitude": 75.087267
+  },
+  {
+    "latitude": 15.394676,
+    "longitude": 75.087005
+  },
+  {
+    "latitude": 15.394715,
+    "longitude": 75.086744
+  },
+  {
+    "latitude": 15.394755,
+    "longitude": 75.086569
+  },
+  {
+    "latitude": 15.394777,
+    "longitude": 75.086412
+  },
+  {
+    "latitude": 15.394801,
+    "longitude": 75.086271
+  },
+  {
+    "latitude": 15.394815,
+    "longitude": 75.086185
+  },
+  {
+    "latitude": 15.394822,
+    "longitude": 75.086144
+  },
+  {
+    "latitude": 15.394832,
+    "longitude": 75.086087
+  },
+  {
+    "latitude": 15.394838,
+    "longitude": 75.086048
+  },
+  {
+    "latitude": 15.394876,
+    "longitude": 75.085852
+  },
+  {
+    "latitude": 15.394921,
+    "longitude": 75.085655
+  },
+  {
+    "latitude": 15.394976,
+    "longitude": 75.085451
+  },
+  {
+    "latitude": 15.39504,
+    "longitude": 75.085274
+  },
+  {
+    "latitude": 15.395127,
+    "longitude": 75.085118
+  },
+  {
+    "latitude": 15.395305,
+    "longitude": 75.084835
+  },
+  {
+    "latitude": 15.395331,
+    "longitude": 75.084797
+  },
+  {
+    "latitude": 15.395413,
+    "longitude": 75.084674
+  },
+  {
+    "latitude": 15.395861,
+    "longitude": 75.084108
+  },
+  {
+    "latitude": 15.39623,
+    "longitude": 75.083601
+  },
+  {
+    "latitude": 15.396417,
+    "longitude": 75.083343
+  },
+  {
+    "latitude": 15.396576,
+    "longitude": 75.083123
+  },
+  {
+    "latitude": 15.396827,
+    "longitude": 75.082763
+  },
+  {
+    "latitude": 15.397035,
+    "longitude": 75.082458
+  },
+  {
+    "latitude": 15.397092,
+    "longitude": 75.082374
+  },
+  {
+    "latitude": 15.397302,
+    "longitude": 75.082072
+  },
+  {
+    "latitude": 15.397506,
+    "longitude": 75.081772
+  },
+  {
+    "latitude": 15.397788,
+    "longitude": 75.081322
+  },
+  {
+    "latitude": 15.398071,
+    "longitude": 75.080827
+  },
+  {
+    "latitude": 15.398158,
+    "longitude": 75.080678
+  },
+  {
+    "latitude": 15.398519,
+    "longitude": 75.080064
+  },
+  {
+    "latitude": 15.398644,
+    "longitude": 75.07988
+  },
+  {
+    "latitude": 15.398876,
+    "longitude": 75.079526
+  },
+  {
+    "latitude": 15.399198,
+    "longitude": 75.079075
+  },
+  {
+    "latitude": 15.399395,
+    "longitude": 75.078805
+  },
+  {
+    "latitude": 15.399597,
+    "longitude": 75.078534
+  },
+  {
+    "latitude": 15.399792,
+    "longitude": 75.078258
+  },
+  {
+    "latitude": 15.399912,
+    "longitude": 75.078089
+  },
+  {
+    "latitude": 15.399967,
+    "longitude": 75.078013
+  },
+  {
+    "latitude": 15.400075,
+    "longitude": 75.077864
+  },
+  {
+    "latitude": 15.400202,
+    "longitude": 75.077689
+  },
+  {
+    "latitude": 15.40024,
+    "longitude": 75.077636
+  },
+  {
+    "latitude": 15.400441,
+    "longitude": 75.077351
+  },
+  {
+    "latitude": 15.400614,
+    "longitude": 75.077105
+  },
+  {
+    "latitude": 15.40079,
+    "longitude": 75.076871
+  },
+  {
+    "latitude": 15.400961,
+    "longitude": 75.076629
+  },
+  {
+    "latitude": 15.401252,
+    "longitude": 75.076219
+  },
+  {
+    "latitude": 15.401419,
+    "longitude": 75.075987
+  },
+  {
+    "latitude": 15.401497,
+    "longitude": 75.075881
+  },
+  {
+    "latitude": 15.401793,
+    "longitude": 75.075458
+  },
+  {
+    "latitude": 15.401994,
+    "longitude": 75.075168
+  },
+  {
+    "latitude": 15.402251,
+    "longitude": 75.074745
+  },
+  {
+    "latitude": 15.402408,
+    "longitude": 75.074468
+  },
+  {
+    "latitude": 15.402793,
+    "longitude": 75.073693
+  },
+  {
+    "latitude": 15.402996,
+    "longitude": 75.073253
+  },
+  {
+    "latitude": 15.403077,
+    "longitude": 75.073093
+  },
+  {
+    "latitude": 15.403244,
+    "longitude": 75.072761
+  },
+  {
+    "latitude": 15.403541,
+    "longitude": 75.072162
+  },
+  {
+    "latitude": 15.403691,
+    "longitude": 75.071857
+  },
+  {
+    "latitude": 15.403738,
+    "longitude": 75.071766
+  },
+  {
+    "latitude": 15.40397,
+    "longitude": 75.071295
+  },
+  {
+    "latitude": 15.404146,
+    "longitude": 75.070929
+  },
+  {
+    "latitude": 15.404315,
+    "longitude": 75.070601
+  },
+  {
+    "latitude": 15.404481,
+    "longitude": 75.070261
+  },
+  {
+    "latitude": 15.404928,
+    "longitude": 75.069362
+  },
+  {
+    "latitude": 15.405125,
+    "longitude": 75.068851
+  },
+  {
+    "latitude": 15.405135,
+    "longitude": 75.068823
+  },
+  {
+    "latitude": 15.405221,
+    "longitude": 75.068586
+  },
+  {
+    "latitude": 15.405485,
+    "longitude": 75.067869
+  },
+  {
+    "latitude": 15.405622,
+    "longitude": 75.067486
+  },
+  {
+    "latitude": 15.405751,
+    "longitude": 75.067123
+  },
+  {
+    "latitude": 15.405875,
+    "longitude": 75.066765
+  },
+  {
+    "latitude": 15.405915,
+    "longitude": 75.066632
+  },
+  {
+    "latitude": 15.406075,
+    "longitude": 75.066173
+  },
+  {
+    "latitude": 15.406104,
+    "longitude": 75.066092
+  },
+  {
+    "latitude": 15.4062,
+    "longitude": 75.065824
+  },
+  {
+    "latitude": 15.406366,
+    "longitude": 75.065435
+  },
+  {
+    "latitude": 15.406548,
+    "longitude": 75.06505
+  },
+  {
+    "latitude": 15.406591,
+    "longitude": 75.064962
+  },
+  {
+    "latitude": 15.406875,
+    "longitude": 75.064379
+  },
+  {
+    "latitude": 15.407072,
+    "longitude": 75.063869
+  },
+  {
+    "latitude": 15.40715,
+    "longitude": 75.063645
+  },
+  {
+    "latitude": 15.407215,
+    "longitude": 75.063429
+  },
+  {
+    "latitude": 15.4074,
+    "longitude": 75.062665
+  },
+  {
+    "latitude": 15.407494,
+    "longitude": 75.062458
+  },
+  {
+    "latitude": 15.407599,
+    "longitude": 75.062269
+  },
+  {
+    "latitude": 15.407884,
+    "longitude": 75.061911
+  },
+  {
+    "latitude": 15.40822,
+    "longitude": 75.061529
+  },
+  {
+    "latitude": 15.408508,
+    "longitude": 75.061261
+  },
+  {
+    "latitude": 15.408589,
+    "longitude": 75.061189
+  },
+  {
+    "latitude": 15.408793,
+    "longitude": 75.061006
+  },
+  {
+    "latitude": 15.409015,
+    "longitude": 75.060825
+  },
+  {
+    "latitude": 15.409241,
+    "longitude": 75.060653
+  },
+  {
+    "latitude": 15.409451,
+    "longitude": 75.060498
+  },
+  {
+    "latitude": 15.409743,
+    "longitude": 75.060287
+  },
+  {
+    "latitude": 15.410155,
+    "longitude": 75.059971
+  },
+  {
+    "latitude": 15.410474,
+    "longitude": 75.059735
+  },
+  {
+    "latitude": 15.410659,
+    "longitude": 75.05959
+  },
+  {
+    "latitude": 15.411198,
+    "longitude": 75.059183
+  },
+  {
+    "latitude": 15.411681,
+    "longitude": 75.058802
+  },
+  {
+    "latitude": 15.412053,
+    "longitude": 75.058444
+  },
+  {
+    "latitude": 15.412353,
+    "longitude": 75.058118
+  },
+  {
+    "latitude": 15.413134,
+    "longitude": 75.057223
+  },
+  {
+    "latitude": 15.413334,
+    "longitude": 75.056968
+  },
+  {
+    "latitude": 15.413537,
+    "longitude": 75.056719
+  },
+  {
+    "latitude": 15.413733,
+    "longitude": 75.056467
+  },
+  {
+    "latitude": 15.41392,
+    "longitude": 75.056212
+  },
+  {
+    "latitude": 15.414179,
+    "longitude": 75.055802
+  },
+  {
+    "latitude": 15.414377,
+    "longitude": 75.055425
+  },
+  {
+    "latitude": 15.414662,
+    "longitude": 75.054779
+  },
+  {
+    "latitude": 15.414899,
+    "longitude": 75.054157
+  },
+  {
+    "latitude": 15.415052,
+    "longitude": 75.053752
+  },
+  {
+    "latitude": 15.415207,
+    "longitude": 75.053392
+  },
+  {
+    "latitude": 15.415282,
+    "longitude": 75.05322
+  },
+  {
+    "latitude": 15.41538,
+    "longitude": 75.05299
+  },
+  {
+    "latitude": 15.415455,
+    "longitude": 75.05281
+  },
+  {
+    "latitude": 15.415523,
+    "longitude": 75.052645
+  },
+  {
+    "latitude": 15.415899,
+    "longitude": 75.051673
+  },
+  {
+    "latitude": 15.416116,
+    "longitude": 75.051083
+  },
+  {
+    "latitude": 15.416292,
+    "longitude": 75.050646
+  },
+  {
+    "latitude": 15.416748,
+    "longitude": 75.049439
+  },
+  {
+    "latitude": 15.416928,
+    "longitude": 75.048924
+  },
+  {
+    "latitude": 15.416958,
+    "longitude": 75.048832
+  },
+  {
+    "latitude": 15.417106,
+    "longitude": 75.048434
+  },
+  {
+    "latitude": 15.417285,
+    "longitude": 75.047927
+  },
+  {
+    "latitude": 15.417383,
+    "longitude": 75.04765
+  },
+  {
+    "latitude": 15.417479,
+    "longitude": 75.047355
+  },
+  {
+    "latitude": 15.417664,
+    "longitude": 75.046737
+  },
+  {
+    "latitude": 15.417702,
+    "longitude": 75.046374
+  },
+  {
+    "latitude": 15.417728,
+    "longitude": 75.045759
+  },
+  {
+    "latitude": 15.41775,
+    "longitude": 75.045145
+  },
+  {
+    "latitude": 15.417768,
+    "longitude": 75.044746
+  },
+  {
+    "latitude": 15.417775,
+    "longitude": 75.044595
+  },
+  {
+    "latitude": 15.417818,
+    "longitude": 75.044335
+  },
+  {
+    "latitude": 15.417852,
+    "longitude": 75.044125
+  },
+  {
+    "latitude": 15.417872,
+    "longitude": 75.044029
+  },
+  {
+    "latitude": 15.417975,
+    "longitude": 75.043521
+  },
+  {
+    "latitude": 15.418062,
+    "longitude": 75.043112
+  },
+  {
+    "latitude": 15.418126,
+    "longitude": 75.042825
+  },
+  {
+    "latitude": 15.418199,
+    "longitude": 75.042509
+  },
+  {
+    "latitude": 15.418344,
+    "longitude": 75.041875
+  },
+  {
+    "latitude": 15.418389,
+    "longitude": 75.041682
+  },
+  {
+    "latitude": 15.418426,
+    "longitude": 75.041498
+  },
+  {
+    "latitude": 15.418482,
+    "longitude": 75.04131
+  },
+  {
+    "latitude": 15.418531,
+    "longitude": 75.041165
+  },
+  {
+    "latitude": 15.418573,
+    "longitude": 75.041059
+  },
+  {
+    "latitude": 15.418602,
+    "longitude": 75.040984
+  },
+  {
+    "latitude": 15.4187,
+    "longitude": 75.040823
+  },
+  {
+    "latitude": 15.418878,
+    "longitude": 75.04055
+  },
+  {
+    "latitude": 15.419062,
+    "longitude": 75.040308
+  },
+  {
+    "latitude": 15.419265,
+    "longitude": 75.040068
+  },
+  {
+    "latitude": 15.41945,
+    "longitude": 75.039852
+  },
+  {
+    "latitude": 15.419626,
+    "longitude": 75.039641
+  },
+  {
+    "latitude": 15.419788,
+    "longitude": 75.039437
+  },
+  {
+    "latitude": 15.419874,
+    "longitude": 75.039322
+  },
+  {
+    "latitude": 15.420218,
+    "longitude": 75.038913
+  },
+  {
+    "latitude": 15.420519,
+    "longitude": 75.038547
+  },
+  {
+    "latitude": 15.420803,
+    "longitude": 75.038201
+  },
+  {
+    "latitude": 15.420952,
+    "longitude": 75.038016
+  },
+  {
+    "latitude": 15.421095,
+    "longitude": 75.037852
+  },
+  {
+    "latitude": 15.421232,
+    "longitude": 75.037701
+  },
+  {
+    "latitude": 15.421434,
+    "longitude": 75.037477
+  },
+  {
+    "latitude": 15.421602,
+    "longitude": 75.037305
+  },
+  {
+    "latitude": 15.421676,
+    "longitude": 75.037242
+  },
+  {
+    "latitude": 15.422022,
+    "longitude": 75.036975
+  },
+  {
+    "latitude": 15.422401,
+    "longitude": 75.036793
+  },
+  {
+    "latitude": 15.423064,
+    "longitude": 75.036529
+  },
+  {
+    "latitude": 15.423264,
+    "longitude": 75.036433
+  },
+  {
+    "latitude": 15.423764,
+    "longitude": 75.036225
+  },
+  {
+    "latitude": 15.424026,
+    "longitude": 75.036108
+  },
+  {
+    "latitude": 15.424692,
+    "longitude": 75.03585
+  },
+  {
+    "latitude": 15.424946,
+    "longitude": 75.035753
+  },
+  {
+    "latitude": 15.425344,
+    "longitude": 75.03559
+  },
+  {
+    "latitude": 15.425738,
+    "longitude": 75.035386
+  },
+  {
+    "latitude": 15.425904,
+    "longitude": 75.035309
+  },
+  {
+    "latitude": 15.426067,
+    "longitude": 75.035235
+  },
+  {
+    "latitude": 15.426221,
+    "longitude": 75.035151
+  },
+  {
+    "latitude": 15.426396,
+    "longitude": 75.035031
+  },
+  {
+    "latitude": 15.426423,
+    "longitude": 75.035012
+  },
+  {
+    "latitude": 15.426885,
+    "longitude": 75.034611
+  },
+  {
+    "latitude": 15.427161,
+    "longitude": 75.034311
+  },
+  {
+    "latitude": 15.427554,
+    "longitude": 75.033656
+  },
+  {
+    "latitude": 15.427802,
+    "longitude": 75.033208
+  },
+  {
+    "latitude": 15.428229,
+    "longitude": 75.032479
+  },
+  {
+    "latitude": 15.428666,
+    "longitude": 75.031848
+  },
+  {
+    "latitude": 15.429662,
+    "longitude": 75.031304
+  },
+  {
+    "latitude": 15.429861,
+    "longitude": 75.031093
+  },
+  {
+    "latitude": 15.430029,
+    "longitude": 75.030877
+  },
+  {
+    "latitude": 15.430042,
+    "longitude": 75.030841
+  },
+  {
+    "latitude": 15.43021,
+    "longitude": 75.030381
+  },
+  {
+    "latitude": 15.430638,
+    "longitude": 75.029169
+  },
+  {
+    "latitude": 15.430948,
+    "longitude": 75.02831
+  },
+  {
+    "latitude": 15.431054,
+    "longitude": 75.027972
+  },
+  {
+    "latitude": 15.431258,
+    "longitude": 75.02741
+  },
+  {
+    "latitude": 15.431444,
+    "longitude": 75.026866
+  },
+  {
+    "latitude": 15.431645,
+    "longitude": 75.026416
+  },
+  {
+    "latitude": 15.43229,
+    "longitude": 75.025563
+  },
+  {
+    "latitude": 15.432813,
+    "longitude": 75.024852
+  },
+  {
+    "latitude": 15.432965,
+    "longitude": 75.024645
+  },
+  {
+    "latitude": 15.433505,
+    "longitude": 75.023849
+  },
+  {
+    "latitude": 15.43379,
+    "longitude": 75.023418
+  },
+  {
+    "latitude": 15.433888,
+    "longitude": 75.023299
+  },
+  {
+    "latitude": 15.43416,
+    "longitude": 75.023047
+  },
+  {
+    "latitude": 15.434415,
+    "longitude": 75.022921
+  },
+  {
+    "latitude": 15.434889,
+    "longitude": 75.022739
+  },
+  {
+    "latitude": 15.435116,
+    "longitude": 75.022603
+  },
+  {
+    "latitude": 15.435372,
+    "longitude": 75.022366
+  },
+  {
+    "latitude": 15.435766,
+    "longitude": 75.021987
+  },
+  {
+    "latitude": 15.435894,
+    "longitude": 75.021832
+  },
+  {
+    "latitude": 15.435985,
+    "longitude": 75.02167
+  },
+  {
+    "latitude": 15.436096,
+    "longitude": 75.021353
+  },
+  {
+    "latitude": 15.436189,
+    "longitude": 75.021037
+  },
+  {
+    "latitude": 15.436296,
+    "longitude": 75.020697
+  },
+  {
+    "latitude": 15.436466,
+    "longitude": 75.020322
+  },
+  {
+    "latitude": 15.43656,
+    "longitude": 75.020152
+  },
+  {
+    "latitude": 15.436754,
+    "longitude": 75.01987
+  },
+  {
+    "latitude": 15.436944,
+    "longitude": 75.019629
+  },
+  {
+    "latitude": 15.437083,
+    "longitude": 75.019522
+  },
+  {
+    "latitude": 15.43712,
+    "longitude": 75.019494
+  },
+  {
+    "latitude": 15.437194,
+    "longitude": 75.019439
+  },
+  {
+    "latitude": 15.437652,
+    "longitude": 75.019091
+  },
+  {
+    "latitude": 15.438143,
+    "longitude": 75.018828
+  },
+  {
+    "latitude": 15.438421,
+    "longitude": 75.018646
+  },
+  {
+    "latitude": 15.438595,
+    "longitude": 75.018544
+  },
+  {
+    "latitude": 15.438961,
+    "longitude": 75.018312
+  },
+  {
+    "latitude": 15.439259,
+    "longitude": 75.018119
+  },
+  {
+    "latitude": 15.439485,
+    "longitude": 75.017984
+  },
+  {
+    "latitude": 15.439621,
+    "longitude": 75.017873
+  },
+  {
+    "latitude": 15.439912,
+    "longitude": 75.01764
+  },
+  {
+    "latitude": 15.440119,
+    "longitude": 75.017455
+  },
+  {
+    "latitude": 15.440338,
+    "longitude": 75.017234
+  },
+  {
+    "latitude": 15.440698,
+    "longitude": 75.016835
+  },
+  {
+    "latitude": 15.441033,
+    "longitude": 75.016496
+  },
+  {
+    "latitude": 15.441274,
+    "longitude": 75.016261
+  },
+  {
+    "latitude": 15.442125,
+    "longitude": 75.015465
+  },
+  {
+    "latitude": 15.442412,
+    "longitude": 75.015271
+  },
+  {
+    "latitude": 15.442467,
+    "longitude": 75.015309
+  },
+  {
+    "latitude": 15.442537,
+    "longitude": 75.015334
+  },
+  {
+    "latitude": 15.442617,
+    "longitude": 75.01535
+  },
+  {
+    "latitude": 15.442292,
+    "longitude": 75.015609
+  },
+  {
+    "latitude": 15.441906,
+    "longitude": 75.015923
+  },
+  {
+    "latitude": 15.44169,
+    "longitude": 75.016099
+  },
+  {
+    "latitude": 15.441114,
+    "longitude": 75.016704
+  },
+  {
+    "latitude": 15.440922,
+    "longitude": 75.016928
+  },
+  {
+    "latitude": 15.440796,
+    "longitude": 75.017075
+  },
+  {
+    "latitude": 15.440458,
+    "longitude": 75.017417
+  },
+  {
+    "latitude": 15.440257,
+    "longitude": 75.017604
+  },
+  {
+    "latitude": 15.440196,
+    "longitude": 75.017544
+  },
+  {
+    "latitude": 15.440158,
+    "longitude": 75.01751
+  },
+  {
+    "latitude": 15.440119,
+    "longitude": 75.017455
+  },
+  {
+    "latitude": 15.440338,
+    "longitude": 75.017234
+  },
+  {
+    "latitude": 15.440698,
+    "longitude": 75.016835
+  },
+  {
+    "latitude": 15.441033,
+    "longitude": 75.016496
+  },
+  {
+    "latitude": 15.441274,
+    "longitude": 75.016261
+  },
+  {
+    "latitude": 15.442125,
+    "longitude": 75.015465
+  },
+  {
+    "latitude": 15.442412,
+    "longitude": 75.015271
+  },
+  {
+    "latitude": 15.443122,
+    "longitude": 75.014473
+  },
+  {
+    "latitude": 15.443622,
+    "longitude": 75.013901
+  },
+  {
+    "latitude": 15.444129,
+    "longitude": 75.013472
+  },
+  {
+    "latitude": 15.44422,
+    "longitude": 75.01343
+  },
+  {
+    "latitude": 15.444809,
+    "longitude": 75.013155
+  },
+  {
+    "latitude": 15.445203,
+    "longitude": 75.013002
+  },
+  {
+    "latitude": 15.445905,
+    "longitude": 75.0126
+  },
+  {
+    "latitude": 15.446809,
+    "longitude": 75.012208
+  },
+  {
+    "latitude": 15.447135,
+    "longitude": 75.012124
+  },
+  {
+    "latitude": 15.447153,
+    "longitude": 75.012204
+  },
+  {
+    "latitude": 15.447158,
+    "longitude": 75.012254
+  },
+  {
+    "latitude": 15.447182,
+    "longitude": 75.012304
+  },
+  {
+    "latitude": 15.446828,
+    "longitude": 75.012442
+  },
+  {
+    "latitude": 15.446124,
+    "longitude": 75.012784
+  },
+  {
+    "latitude": 15.445911,
+    "longitude": 75.012887
+  },
+  {
+    "latitude": 15.445191,
+    "longitude": 75.013211
+  },
+  {
+    "latitude": 15.444823,
+    "longitude": 75.013361
+  },
+  {
+    "latitude": 15.444525,
+    "longitude": 75.013482
+  },
+  {
+    "latitude": 15.444204,
+    "longitude": 75.013663
+  },
+  {
+    "latitude": 15.443788,
+    "longitude": 75.014003
+  },
+  {
+    "latitude": 15.443428,
+    "longitude": 75.014405
+  },
+  {
+    "latitude": 15.442617,
+    "longitude": 75.01535
+  },
+  {
+    "latitude": 15.442537,
+    "longitude": 75.015334
+  },
+  {
+    "latitude": 15.442467,
+    "longitude": 75.015309
+  },
+  {
+    "latitude": 15.442412,
+    "longitude": 75.015271
+  },
+  {
+    "latitude": 15.443122,
+    "longitude": 75.014473
+  },
+  {
+    "latitude": 15.443622,
+    "longitude": 75.013901
+  },
+  {
+    "latitude": 15.444129,
+    "longitude": 75.013472
+  },
+  {
+    "latitude": 15.44422,
+    "longitude": 75.01343
+  },
+  {
+    "latitude": 15.444809,
+    "longitude": 75.013155
+  },
+  {
+    "latitude": 15.445203,
+    "longitude": 75.013002
+  },
+  {
+    "latitude": 15.445905,
+    "longitude": 75.0126
+  },
+  {
+    "latitude": 15.446809,
+    "longitude": 75.012208
+  },
+  {
+    "latitude": 15.447135,
+    "longitude": 75.012124
+  },
+  {
+    "latitude": 15.447453,
+    "longitude": 75.011985
+  },
+  {
+    "latitude": 15.447631,
+    "longitude": 75.011933
+  },
+  {
+    "latitude": 15.448479,
+    "longitude": 75.011628
+  },
+  {
+    "latitude": 15.449044,
+    "longitude": 75.01139
+  },
+  {
+    "latitude": 15.449408,
+    "longitude": 75.011227
+  },
+  {
+    "latitude": 15.44988,
+    "longitude": 75.011015
+  },
+  {
+    "latitude": 15.450084,
+    "longitude": 75.010942
+  },
+  {
+    "latitude": 15.450239,
+    "longitude": 75.010911
+  },
+  {
+    "latitude": 15.450412,
+    "longitude": 75.010909
+  },
+  {
+    "latitude": 15.450589,
+    "longitude": 75.010912
+  },
+  {
+    "latitude": 15.450864,
+    "longitude": 75.010872
+  },
+  {
+    "latitude": 15.451039,
+    "longitude": 75.010826
+  },
+  {
+    "latitude": 15.451472,
+    "longitude": 75.010657
+  },
+  {
+    "latitude": 15.452116,
+    "longitude": 75.010436
+  },
+  {
+    "latitude": 15.452448,
+    "longitude": 75.010265
+  },
+  {
+    "latitude": 15.452618,
+    "longitude": 75.010156
+  },
+  {
+    "latitude": 15.452759,
+    "longitude": 75.010028
+  },
+  {
+    "latitude": 15.452951,
+    "longitude": 75.009812
+  },
+  {
+    "latitude": 15.453119,
+    "longitude": 75.009591
+  },
+  {
+    "latitude": 15.453266,
+    "longitude": 75.009386
+  },
+  {
+    "latitude": 15.453559,
+    "longitude": 75.008974
+  },
+  {
+    "latitude": 15.453668,
+    "longitude": 75.008827
+  },
+  {
+    "latitude": 15.453868,
+    "longitude": 75.008636
+  },
+  {
+    "latitude": 15.454073,
+    "longitude": 75.00836
+  },
+  {
+    "latitude": 15.454261,
+    "longitude": 75.008097
+  },
+  {
+    "latitude": 15.454388,
+    "longitude": 75.007897
+  },
+  {
+    "latitude": 15.454547,
+    "longitude": 75.007656
+  },
+  {
+    "latitude": 15.45465,
+    "longitude": 75.007484
+  },
+  {
+    "latitude": 15.454769,
+    "longitude": 75.007264
+  },
+  {
+    "latitude": 15.454821,
+    "longitude": 75.007196
+  },
+  {
+    "latitude": 15.454946,
+    "longitude": 75.007083
+  },
+  {
+    "latitude": 15.455101,
+    "longitude": 75.007009
+  },
+  {
+    "latitude": 15.455109,
+    "longitude": 75.007006
+  },
+  {
+    "latitude": 15.455359,
+    "longitude": 75.006959
+  },
+  {
+    "latitude": 15.456004,
+    "longitude": 75.006849
+  },
+  {
+    "latitude": 15.456193,
+    "longitude": 75.006817
+  },
+  {
+    "latitude": 15.456202,
+    "longitude": 75.006905
+  },
+  {
+    "latitude": 15.456208,
+    "longitude": 75.006967
+  },
+  {
+    "latitude": 15.456213,
+    "longitude": 75.007025
+  },
+  {
+    "latitude": 15.456047,
+    "longitude": 75.007049
+  },
+  {
+    "latitude": 15.45566,
+    "longitude": 75.007124
+  },
+  {
+    "latitude": 15.455362,
+    "longitude": 75.007182
+  },
+  {
+    "latitude": 15.455151,
+    "longitude": 75.007216
+  },
+  {
+    "latitude": 15.455017,
+    "longitude": 75.007274
+  },
+  {
+    "latitude": 15.454919,
+    "longitude": 75.007377
+  },
+  {
+    "latitude": 15.454893,
+    "longitude": 75.007315
+  },
+  {
+    "latitude": 15.454847,
+    "longitude": 75.007251
+  },
+  {
+    "latitude": 15.454821,
+    "longitude": 75.007196
+  },
+  {
+    "latitude": 15.454946,
+    "longitude": 75.007083
+  },
+  {
+    "latitude": 15.455101,
+    "longitude": 75.007009
+  },
+  {
+    "latitude": 15.455109,
+    "longitude": 75.007006
+  },
+  {
+    "latitude": 15.455359,
+    "longitude": 75.006959
+  },
+  {
+    "latitude": 15.456004,
+    "longitude": 75.006849
+  },
+  {
+    "latitude": 15.456193,
+    "longitude": 75.006817
+  },
+  {
+    "latitude": 15.45641,
+    "longitude": 75.006819
+  },
+  {
+    "latitude": 15.456734,
+    "longitude": 75.006877
+  },
+  {
+    "latitude": 15.456928,
+    "longitude": 75.006948
+  },
+  {
+    "latitude": 15.457516,
+    "longitude": 75.007189
+  },
+  {
+    "latitude": 15.457746,
+    "longitude": 75.007269
+  },
+  {
+    "latitude": 15.458457,
+    "longitude": 75.007523
+  },
+  {
+    "latitude": 15.458605,
+    "longitude": 75.007579
+  },
+  {
+    "latitude": 15.458721,
+    "longitude": 75.007636
+  },
+  {
+    "latitude": 15.458973,
+    "longitude": 75.007795
+  },
+  {
+    "latitude": 15.458951,
+    "longitude": 75.007806
+  },
+  {
+    "latitude": 15.458816,
+    "longitude": 75.007807
+  },
+  {
+    "latitude": 15.458581,
+    "longitude": 75.007778
+  },
+  {
+    "latitude": 15.458395,
+    "longitude": 75.00773
+  },
+  {
+    "latitude": 15.458024,
+    "longitude": 75.007584
+  },
+  {
+    "latitude": 15.457674,
+    "longitude": 75.007446
+  },
+  {
+    "latitude": 15.457444,
+    "longitude": 75.007354
+  },
+  {
+    "latitude": 15.456861,
+    "longitude": 75.007115
+  },
+  {
+    "latitude": 15.456717,
+    "longitude": 75.007067
+  },
+  {
+    "latitude": 15.456554,
+    "longitude": 75.007039
+  },
+  {
+    "latitude": 15.456383,
+    "longitude": 75.007029
+  },
+  {
+    "latitude": 15.456213,
+    "longitude": 75.007025
+  },
+  {
+    "latitude": 15.456208,
+    "longitude": 75.006967
+  },
+  {
+    "latitude": 15.456202,
+    "longitude": 75.006905
+  },
+  {
+    "latitude": 15.456193,
+    "longitude": 75.006817
+  },
+  {
+    "latitude": 15.45641,
+    "longitude": 75.006819
+  },
+  {
+    "latitude": 15.456734,
+    "longitude": 75.006877
+  },
+  {
+    "latitude": 15.456928,
+    "longitude": 75.006948
+  },
+  {
+    "latitude": 15.457516,
+    "longitude": 75.007189
+  },
+  {
+    "latitude": 15.457746,
+    "longitude": 75.007269
+  },
+  {
+    "latitude": 15.458457,
+    "longitude": 75.007523
+  },
+  {
+    "latitude": 15.458605,
+    "longitude": 75.007579
+  },
+  {
+    "latitude": 15.458721,
+    "longitude": 75.007636
+  },
+  {
+    "latitude": 15.458973,
+    "longitude": 75.007795
+  },
+  {
+    "latitude": 15.459081,
+    "longitude": 75.007874
+  },
+  {
+    "latitude": 15.459213,
+    "longitude": 75.008032
+  },
+  {
+    "latitude": 15.459701,
+    "longitude": 75.008558
+  },
+  {
+    "latitude": 15.460236,
+    "longitude": 75.008908
+  },
+  {
+    "latitude": 15.460273,
+    "longitude": 75.009009
+  },
+  {
+    "latitude": 15.460295,
+    "longitude": 75.009053
+  },
+  {
+    "latitude": 15.460311,
+    "longitude": 75.009093
+  },
+  {
+    "latitude": 15.460329,
+    "longitude": 75.009172
+  },
+  {
+    "latitude": 15.460329,
+    "longitude": 75.009242
+  },
+  {
+    "latitude": 15.46033,
+    "longitude": 75.009311
+  },
+  {
+    "latitude": 15.460315,
+    "longitude": 75.009376
+  },
+  {
+    "latitude": 15.460289,
+    "longitude": 75.009467
+  },
+  {
+    "latitude": 15.460245,
+    "longitude": 75.009514
+  }
+];
+
+// Hubballi Branch A: Hosur Cross (30) ➔ Gokul Bus Station (31) along Gokul Road
+export const HDBRTS_GOKUL_BRANCH_COORDINATES: Coordinates[] = [
+  {
+    "latitude": 15.354709,
+    "longitude": 75.130363
+  },
+  {
+    "latitude": 15.354734,
+    "longitude": 75.130349
+  },
+  {
+    "latitude": 15.35465,
+    "longitude": 75.13001
+  },
+  {
+    "latitude": 15.354357,
+    "longitude": 75.128887
+  },
+  {
+    "latitude": 15.354683,
+    "longitude": 75.128799
+  },
+  {
+    "latitude": 15.354846,
+    "longitude": 75.12875
+  },
+  {
+    "latitude": 15.354769,
+    "longitude": 75.128417
+  },
+  {
+    "latitude": 15.354659,
+    "longitude": 75.128003
+  },
+  {
+    "latitude": 15.354411,
+    "longitude": 75.127283
+  },
+  {
+    "latitude": 15.354283,
+    "longitude": 75.127334
+  },
+  {
+    "latitude": 15.353648,
+    "longitude": 75.127577
+  },
+  {
+    "latitude": 15.353047,
+    "longitude": 75.127711
+  },
+  {
+    "latitude": 15.352868,
+    "longitude": 75.12774
+  },
+  {
+    "latitude": 15.352802,
+    "longitude": 75.12778
+  },
+  {
+    "latitude": 15.352492,
+    "longitude": 75.127981
+  },
+  {
+    "latitude": 15.352415,
+    "longitude": 75.128053
+  },
+  {
+    "latitude": 15.352345,
+    "longitude": 75.128134
+  },
+  {
+    "latitude": 15.352044,
+    "longitude": 75.128494
+  },
+  {
+    "latitude": 15.351935,
+    "longitude": 75.128652
+  },
+  {
+    "latitude": 15.351866,
+    "longitude": 75.128806
+  },
+  {
+    "latitude": 15.351769,
+    "longitude": 75.129038
+  },
+  {
+    "latitude": 15.351723,
+    "longitude": 75.129086
+  },
+  {
+    "latitude": 15.351661,
+    "longitude": 75.129149
+  },
+  {
+    "latitude": 15.351394,
+    "longitude": 75.12889
+  },
+  {
+    "latitude": 15.351201,
+    "longitude": 75.128615
+  },
+  {
+    "latitude": 15.351152,
+    "longitude": 75.12841
+  },
+  {
+    "latitude": 15.351127,
+    "longitude": 75.128267
+  },
+  {
+    "latitude": 15.351122,
+    "longitude": 75.12824
+  },
+  {
+    "latitude": 15.351113,
+    "longitude": 75.12796
+  },
+  {
+    "latitude": 15.351136,
+    "longitude": 75.127506
+  },
+  {
+    "latitude": 15.35114,
+    "longitude": 75.12732
+  },
+  {
+    "latitude": 15.351147,
+    "longitude": 75.127216
+  },
+  {
+    "latitude": 15.351205,
+    "longitude": 75.125999
+  },
+  {
+    "latitude": 15.351219,
+    "longitude": 75.12542
+  },
+  {
+    "latitude": 15.351227,
+    "longitude": 75.125328
+  },
+  {
+    "latitude": 15.351265,
+    "longitude": 75.123861
+  },
+  {
+    "latitude": 15.351258,
+    "longitude": 75.123763
+  },
+  {
+    "latitude": 15.351242,
+    "longitude": 75.123519
+  },
+  {
+    "latitude": 15.351072,
+    "longitude": 75.120967
+  },
+  {
+    "latitude": 15.351068,
+    "longitude": 75.120908
+  },
+  {
+    "latitude": 15.3509,
+    "longitude": 75.11923
+  },
+  {
+    "latitude": 15.350891,
+    "longitude": 75.119116
+  },
+  {
+    "latitude": 15.350856,
+    "longitude": 75.118699
+  },
+  {
+    "latitude": 15.350775,
+    "longitude": 75.117487
+  },
+  {
+    "latitude": 15.35076,
+    "longitude": 75.117327
+  },
+  {
+    "latitude": 15.350315,
+    "longitude": 75.117354
+  },
+  {
+    "latitude": 15.350105,
+    "longitude": 75.117362
+  },
+  {
+    "latitude": 15.349982,
+    "longitude": 75.117375
+  },
+  {
+    "latitude": 15.34937,
+    "longitude": 75.117478
+  },
+  {
+    "latitude": 15.348977,
+    "longitude": 75.117558
+  }
+];
+
+// Hubballi Branch C: Dr. B R Ambedkar Circle (34) ➔ Hubballi Railway Station (36) along Station Road
+export const HDBRTS_RAILWAY_BRANCH_COORDINATES: Coordinates[] = [
+  {
+    "latitude": 15.35284,
+    "longitude": 75.145402
+  },
+  {
+    "latitude": 15.352902,
+    "longitude": 75.145647
+  },
+  {
+    "latitude": 15.352928,
+    "longitude": 75.145729
+  },
+  {
+    "latitude": 15.352704,
+    "longitude": 75.145823
+  },
+  {
+    "latitude": 15.352311,
+    "longitude": 75.145855
+  },
+  {
+    "latitude": 15.352229,
+    "longitude": 75.14589
+  },
+  {
+    "latitude": 15.352185,
+    "longitude": 75.145906
+  },
+  {
+    "latitude": 15.352156,
+    "longitude": 75.145916
+  },
+  {
+    "latitude": 15.352041,
+    "longitude": 75.145913
+  },
+  {
+    "latitude": 15.351733,
+    "longitude": 75.145881
+  },
+  {
+    "latitude": 15.351646,
+    "longitude": 75.145888
+  },
+  {
+    "latitude": 15.351652,
+    "longitude": 75.14597
+  },
+  {
+    "latitude": 15.351616,
+    "longitude": 75.146157
+  },
+  {
+    "latitude": 15.35159,
+    "longitude": 75.146468
+  },
+  {
+    "latitude": 15.351548,
+    "longitude": 75.146752
+  },
+  {
+    "latitude": 15.351538,
+    "longitude": 75.146817
+  },
+  {
+    "latitude": 15.351425,
+    "longitude": 75.147026
+  },
+  {
+    "latitude": 15.3513,
+    "longitude": 75.147166
+  },
+  {
+    "latitude": 15.351114,
+    "longitude": 75.147322
+  },
+  {
+    "latitude": 15.35095,
+    "longitude": 75.147379
+  },
+  {
+    "latitude": 15.350412,
+    "longitude": 75.147507
+  },
+  {
+    "latitude": 15.349901,
+    "longitude": 75.147572
+  },
+  {
+    "latitude": 15.349604,
+    "longitude": 75.147637
+  },
+  {
+    "latitude": 15.349436,
+    "longitude": 75.147713
+  },
+  {
+    "latitude": 15.349392,
+    "longitude": 75.147815
+  },
+  {
+    "latitude": 15.34937,
+    "longitude": 75.147864
+  },
+  {
+    "latitude": 15.34935,
+    "longitude": 75.1479
+  },
+  {
+    "latitude": 15.349306,
+    "longitude": 75.148032
+  },
+  {
+    "latitude": 15.349404,
+    "longitude": 75.148481
+  }
+];
+
+// Dharwad North Extension: Jubilee Circle (03) ➔ Dharwad New Bus Stand (01)
+export const HDBRTS_DHARWAD_NEW_COORDINATES: Coordinates[] = [
+  {
+    "latitude": 15.458024,
+    "longitude": 75.007584
+  },
+  {
+    "latitude": 15.457674,
+    "longitude": 75.007446
+  },
+  {
+    "latitude": 15.457444,
+    "longitude": 75.007354
+  },
+  {
+    "latitude": 15.456861,
+    "longitude": 75.007115
+  },
+  {
+    "latitude": 15.456717,
+    "longitude": 75.007067
+  },
+  {
+    "latitude": 15.456554,
+    "longitude": 75.007039
+  },
+  {
+    "latitude": 15.456383,
+    "longitude": 75.007029
+  },
+  {
+    "latitude": 15.456213,
+    "longitude": 75.007025
+  },
+  {
+    "latitude": 15.456208,
+    "longitude": 75.006967
+  },
+  {
+    "latitude": 15.456202,
+    "longitude": 75.006905
+  },
+  {
+    "latitude": 15.456193,
+    "longitude": 75.006817
+  },
+  {
+    "latitude": 15.45641,
+    "longitude": 75.006819
+  },
+  {
+    "latitude": 15.456734,
+    "longitude": 75.006877
+  },
+  {
+    "latitude": 15.456928,
+    "longitude": 75.006948
+  },
+  {
+    "latitude": 15.457516,
+    "longitude": 75.007189
+  },
+  {
+    "latitude": 15.457746,
+    "longitude": 75.007269
+  },
+  {
+    "latitude": 15.458457,
+    "longitude": 75.007523
+  },
+  {
+    "latitude": 15.458605,
+    "longitude": 75.007579
+  },
+  {
+    "latitude": 15.458721,
+    "longitude": 75.007636
+  },
+  {
+    "latitude": 15.458973,
+    "longitude": 75.007795
+  },
+  {
+    "latitude": 15.459081,
+    "longitude": 75.007874
+  },
+  {
+    "latitude": 15.459213,
+    "longitude": 75.008032
+  },
+  {
+    "latitude": 15.459701,
+    "longitude": 75.008558
+  },
+  {
+    "latitude": 15.460236,
+    "longitude": 75.008908
+  },
+  {
+    "latitude": 15.460407,
+    "longitude": 75.008993
+  },
+  {
+    "latitude": 15.460495,
+    "longitude": 75.009045
+  },
+  {
+    "latitude": 15.460576,
+    "longitude": 75.009132
+  },
+  {
+    "latitude": 15.460578,
+    "longitude": 75.009273
+  },
+  {
+    "latitude": 15.460264,
+    "longitude": 75.010158
+  },
+  {
+    "latitude": 15.460484,
+    "longitude": 75.010714
+  },
+  {
+    "latitude": 15.460618,
+    "longitude": 75.011027
+  },
+  {
+    "latitude": 15.46064,
+    "longitude": 75.011078
+  },
+  {
+    "latitude": 15.460741,
+    "longitude": 75.011274
+  },
+  {
+    "latitude": 15.460861,
+    "longitude": 75.011504
+  },
+  {
+    "latitude": 15.461134,
+    "longitude": 75.011906
+  },
+  {
+    "latitude": 15.461193,
+    "longitude": 75.011993
+  },
+  {
+    "latitude": 15.461527,
+    "longitude": 75.012342
+  },
+  {
+    "latitude": 15.461594,
+    "longitude": 75.012412
+  },
+  {
+    "latitude": 15.461895,
+    "longitude": 75.012692
+  },
+  {
+    "latitude": 15.462406,
+    "longitude": 75.012895
+  },
+  {
+    "latitude": 15.46261,
+    "longitude": 75.012971
+  },
+  {
+    "latitude": 15.463008,
+    "longitude": 75.013119
+  },
+  {
+    "latitude": 15.463577,
+    "longitude": 75.013331
+  },
+  {
+    "latitude": 15.464376,
+    "longitude": 75.013629
+  },
+  {
+    "latitude": 15.464511,
+    "longitude": 75.01364
+  },
+  {
+    "latitude": 15.464829,
+    "longitude": 75.01395
+  },
+  {
+    "latitude": 15.465207,
+    "longitude": 75.014261
+  },
+  {
+    "latitude": 15.465663,
+    "longitude": 75.014637
+  },
+  {
+    "latitude": 15.465916,
+    "longitude": 75.014845
+  },
+  {
+    "latitude": 15.466135,
+    "longitude": 75.015026
+  },
+  {
+    "latitude": 15.466306,
+    "longitude": 75.015169
+  },
+  {
+    "latitude": 15.466487,
+    "longitude": 75.01429
+  },
+  {
+    "latitude": 15.466508,
+    "longitude": 75.014202
+  }
+];
+
+export const CHIGARI_CORRIDOR_ROUTE: ChigariRoute = {
+  id: 'hdbrts-corridor',
+  routeNumber: 'BRTS',
+  name: 'Hubballi CBT ➔ Dharwad BRTS Terminal',
+  color: '#2E7D32',
+  origin: 'Hubballi CBT',
+  destination: 'Dharwad BRTS Terminal',
+  totalDistanceMeters: 26093,
+  stops: CHIGARI_VERIFIED_STOPS,
+  coordinates: HDBRTS_CORRIDOR_COORDINATES,
+};
+
+// ─── Network Segments for Clean Branch Rendering (No Overlaps / Duplicate Lines) ───
+// Trunk Corridor: Dr. B R Ambedkar Circle (idx 76) ↔ Jubilee Circle (idx 876)
+export const HDBRTS_TRUNK_COORDINATES: Coordinates[] = HDBRTS_CORRIDOR_COORDINATES.slice(76, 877);
+
+// Southern Branch A: Ambedkar Circle (idx 76) ➔ Hubballi CBT (idx 0)
+export const HDBRTS_CBT_BRANCH_COORDINATES: Coordinates[] = HDBRTS_CORRIDOR_COORDINATES.slice(0, 77);
+
+// Southern Branch B: Ambedkar Circle ➔ Hubballi Railway Station
+export const HDBRTS_RAILWAY_COORDINATES: Coordinates[] = HDBRTS_RAILWAY_BRANCH_COORDINATES;
+
+// Northern Branch A: Jubilee Circle (idx 876) ➔ Dharwad BRTS Terminal (idx 908)
+export const HDBRTS_DHARWAD_BRTS_BRANCH_COORDINATES: Coordinates[] = HDBRTS_CORRIDOR_COORDINATES.slice(876, 909);
+
+// Northern Branch B: Jubilee Circle ➔ Dharwad New Bus Stand
+export const HDBRTS_DHARWAD_NEW_BRANCH_COORDINATES: Coordinates[] = HDBRTS_DHARWAD_NEW_COORDINATES;
+
+
+// ─── 4 Simulated Live Chigari Buses (Official Route Numbers Only) ─────────────
+// Strictly: 200A, 201B, 100D, 202C. NO fake license plates.
+export const INITIAL_CHIGARI_BUSES: ChigariBus[] = [
+  {
+    id: 'bus-200a',
+    busNumber: '200A',
+    routeName: 'Route 200A • Dharwad BRTS ➔ Hubballi CBT',
+    routeColor: '#2E7D32',
+    direction: 'To Hubballi CBT',
+    crowd: 'Moderate',
+    status: 'In Transit • Near KIMS',
+    latitude: 15.3602,
+    longitude: 75.1271,
+    heading: 135,
+    speed: 32,
+    progressMeters: 3585, // Near KIMS heading south to Hosur Cross / CBT
+    currentStop: CHIGARI_VERIFIED_STOPS[27], // KIMS
+    nextStop: CHIGARI_VERIFIED_STOPS[28],    // Hosur Regional Bus Station
+    distanceToNextStop: 389,
+    etaMinutes: 2,
+    lastUpdated: 'Just now',
+    isSelected: true,
+    isReverse: true, // Heading towards Hubballi CBT
+  },
+  {
+    id: 'bus-201b',
+    busNumber: '201B',
+    routeName: 'Route 201B • Hubballi Railway Station ➔ Dharwad New Bus Stand',
+    routeColor: '#1B5E20',
+    direction: 'To Dharwad New Bus Stand',
+    crowd: 'Low',
+    status: 'In Transit • Express',
+    latitude: 15.3985,
+    longitude: 75.0805,
+    heading: 315,
+    speed: 42,
+    progressMeters: 11451, // Past Navanagar heading toward RTO
+    currentStop: CHIGARI_VERIFIED_STOPS[18], // Navanagar
+    nextStop: CHIGARI_VERIFIED_STOPS[17],    // RTO
+    distanceToNextStop: 699,
+    etaMinutes: 1,
+    lastUpdated: 'Just now',
+    isSelected: false,
+    isReverse: false,
+  },
+  {
+    id: 'bus-100d',
+    busNumber: '100D',
+    routeName: 'Route 100D • Hubballi Railway Station ➔ Dharwad New Bus Stand',
+    routeColor: '#388E3C',
+    direction: 'To Dharwad New Bus Stand',
+    crowd: 'High',
+    status: 'In Transit • Approaching Stop',
+    latitude: 15.4355,
+    longitude: 75.0218,
+    heading: 310,
+    speed: 28,
+    progressMeters: 19063, // Past Lakamanahalli heading toward Gandhinagar
+    currentStop: CHIGARI_VERIFIED_STOPS[9], // Lakamanahalli
+    nextStop: CHIGARI_VERIFIED_STOPS[8],    // Gandhinagar
+    distanceToNextStop: 845,
+    etaMinutes: 1,
+    lastUpdated: 'Just now',
+    isSelected: false,
+    isReverse: false,
+  },
+  {
+    id: 'bus-202c',
+    busNumber: '202C',
+    routeName: 'Route 202C • Hubballi Gokul ➔ Dharwad New Bus Stand',
+    routeColor: '#7B1FA2',
+    direction: 'To Dharwad New Bus Stand',
+    crowd: 'Low',
+    status: 'In Transit • Gokul Express',
+    latitude: 15.3547,
+    longitude: 75.1304,
+    heading: 320,
+    speed: 36,
+    progressMeters: 2882, // Originating from Gokul Bus Stand, at Hosur Cross
+    currentStop: CHIGARI_VERIFIED_STOPS[29], // Hosur Cross
+    nextStop: CHIGARI_VERIFIED_STOPS[28],    // Hosur Regional Bus Station
+    distanceToNextStop: 314,
+    etaMinutes: 2,
+    lastUpdated: 'Just now',
+    isSelected: false,
+    isReverse: false,
+  },
+];

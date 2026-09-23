@@ -7,48 +7,52 @@
 // ─── COLOR SYSTEM ───────────────────────────────────────────────────────────
 
 export const Colors = {
-  // Brand
-  primary: '#1565C0',
-  primaryDark: '#0D47A1',
-  primaryLight: '#E3F2FD',
+  // Brand (Green #2E7D32 & Orange #F57C00 from Reference)
+  primary: '#2E7D32',         // Sustainability Green
+  primaryDark: '#1B5E20',
+  primaryLight: '#E8F5E9',    // Light Green Background / Accent
 
-  secondary: '#42A5F5',
-  secondaryDark: '#1E88E5',
-  secondaryLight: '#BBDEFB',
+  secondary: '#F57C00',       // Transport Orange
+  secondaryDark: '#E65100',
+  secondaryLight: '#FFF3E0',
 
-  accent: '#64B5F6',
+  accent: '#43A047',
+
+  // Information & Helpers
+  info: '#1976D2',            // Information Blue
+  infoLight: '#E3F2FD',
 
   // Semantic
   success: '#2E7D32',
   successLight: '#E8F5E9',
-  warning: '#F9A825',
-  warningLight: '#FFF8E1',
-  error: '#C62828',
+  warning: '#F57C00',
+  warningLight: '#FFF3E0',
+  error: '#D32F2F',
   errorLight: '#FFEBEE',
 
   // Surfaces
-  background: '#F5F7FA',
+  background: '#F8F9FA',      // Clean off-white light background
   surface: '#FFFFFF',
-  surfaceVariant: '#F0F2F5',
-  surfaceDim: '#E8EAF0',
+  surfaceVariant: '#F5F5F5',  // Grey container background from reference
+  surfaceDim: '#ECEFF1',
   inverseSurface: '#1A1C20',
 
   // Text
-  textPrimary: '#212121',
-  textSecondary: '#616161',
-  textTertiary: '#9E9E9E',
+  textPrimary: '#1E293B',
+  textSecondary: '#64748B',
+  textTertiary: '#94A3B8',
   textOnPrimary: '#FFFFFF',
   textOnSecondary: '#FFFFFF',
   textInverse: '#FFFFFF',
 
   // Borders & dividers
-  outline: '#E0E0E0',
-  outlineVariant: '#EEEEEE',
-  divider: '#F0F0F0',
+  outline: '#E2E8F0',
+  outlineVariant: '#F1F5F9',
+  divider: '#EEEEEE',
 
   // Overlays
   overlay: 'rgba(0, 0, 0, 0.5)',
-  overlayLight: 'rgba(0, 0, 0, 0.3)',
+  overlayLight: 'rgba(0, 0, 0, 0.25)',
   scrim: 'rgba(0, 0, 0, 0.6)',
 } as const;
 
@@ -78,6 +82,7 @@ export const Radius = {
   bottomSheet: 24,
   pill: 100,
   full: 9999,
+  circle: 9999,
 } as const;
 
 // ─── ELEVATION / SHADOWS (MD3) ───────────────────────────────────────────────

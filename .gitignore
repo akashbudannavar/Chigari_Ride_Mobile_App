@@ -33,3 +33,10 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Expo CNG / Prebuild
+/android
+/ios
+
+app-log.txt
+app.json.backup

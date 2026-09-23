@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, View, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, Pressable, KeyboardAvoidingView, Platform, Image, ScrollView, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -12,7 +12,7 @@ import Animated, {
   cancelAnimation,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { ArrowLeft, Mail, Lock, Eye, EyeOff, Phone } from 'lucide-react-native';
+import { ArrowLeft, Mail, Lock, Eye, EyeOff, Phone, User } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Screen } from '@/components/Screen';
@@ -20,13 +20,16 @@ import { Text } from '@/components/ui/Text';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { Colors, FontFamily, Spacing, Radius, Shadows, Typography } from '@/constants/theme';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type InputMode = 'email' | 'phone';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
-  const { signIn } = useAuth();
+  const { signIn, resendVerificationEmail, continueAsGuest } = useAuth();
+  const { t } = useLanguage();
 
   const [mode, setMode] = useState<InputMode>('email');
   const [identifier, setIdentifier] = useState('');
@@ -98,19 +101,55 @@ export default function LoginScreen() {
 
     // Use email for Supabase auth; phone mode is a UI placeholder
     const email = mode === 'email' ? identifier.trim() : `${identifier.trim()}@chigari.placeholder`;
-    const { error: signInError } = await signIn(email, password);
+    const { error: signInError, needsEmailVerification } = await signIn(email, password);
+
+    setLoading(false);
 
     if (signInError) {
       setError(signInError);
-      setLoading(false);
+      if (needsEmailVerification) {
+        Alert.alert(
+          'Email Unverified',
+          'Your account email has not been verified yet. Would you like us to resend the verification link?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Resend Email',
+              onPress: async () => {
+                const res = await resendVerificationEmail(email);
+                if (res.error) {
+                  Alert.alert('Resend Failed', res.error);
+                } else {
+                  Alert.alert('Verification Sent', `A new verification email was sent to ${email}. Please check your inbox.`);
+                }
+              },
+            },
+          ]
+        );
+      }
     } else {
-      router.replace('/(tabs)/index');
+      router.replace('/(tabs)');
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Placeholder for OAuth flow
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+      });
+      if (error) {
+        setError('Google sign-in is not configured yet. Please continue with Email.');
+        if (Platform.OS !== 'web') {
+          Alert.alert('Google Sign-In', 'Google sign-in is not configured yet. Please continue with Email.');
+        }
+      }
+    } catch {
+      setError('Google sign-in is not configured yet. Please continue with Email.');
+      if (Platform.OS !== 'web') {
+        Alert.alert('Google Sign-In', 'Google sign-in is not configured yet. Please continue with Email.');
+      }
+    }
   };
 
   const handleForgotPassword = () => {
@@ -121,6 +160,12 @@ export default function LoginScreen() {
   const handleCreateAccount = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push('/signup');
+  };
+
+  const handleGuestLogin = () => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    continueAsGuest();
+    router.replace('/(tabs)');
   };
 
   const handleBack = () => {
@@ -141,196 +186,186 @@ export default function LoginScreen() {
 
   return (
     <Screen backgroundColor={Colors.background} safeAreaTop={false} safeAreaBottom={false}>
-      {/* ─── Header ─── */}
-      <LinearGradient
-        colors={[Colors.primaryDark, Colors.primary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={[styles.header, { paddingTop: insets.top + Spacing.lg }]}
-      >
-        <Animated.View style={headerStyle}>
-          {/* Back button */}
-          <Pressable style={styles.backButton} onPress={handleBack} hitSlop={12}>
-            <ArrowLeft size={22} color={Colors.textOnPrimary} strokeWidth={2.5} />
-          </Pressable>
-
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Text
-                variant="headlineSmall"
-                style={styles.logoText}
-              >
-                CR
-              </Text>
-            </View>
-          </View>
-
-          <Text variant="headlineMedium" align="center" style={styles.appName}>
-            CHIGARI RIDE
-          </Text>
-          <Text variant="bodySmall" align="center" style={styles.tagline}>
-            Smart Transit for Hubballi-Dharwad
-          </Text>
-        </Animated.View>
-      </LinearGradient>
+      {/* ─── Top Navigation Bar ─── */}
+      <View style={[styles.topBar, { paddingTop: insets.top + Spacing.md }]}>
+        <Pressable style={styles.backButton} onPress={handleBack} hitSlop={12}>
+          <ArrowLeft size={22} color={Colors.textPrimary} strokeWidth={2.5} />
+        </Pressable>
+      </View>
 
       {/* ─── Form ─── */}
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Animated.View style={[styles.formContainer, formStyle]}>
-          {/* Welcome text */}
-          <Text variant="headlineSmall" style={styles.loginTitle}>
-            Login to your account
-          </Text>
-          <Text variant="bodyMedium" color={Colors.textSecondary} style={styles.loginSubtitle}>
-            Enter your credentials to continue
-          </Text>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + Spacing.xl }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Animated.View style={[styles.formContainer, formStyle]}>
+            {/* Welcome text matching Reference */}
+            <Text variant="displaySmall" style={styles.loginTitle}>
+              {t('auth.welcomeBack')}
+            </Text>
+            <Text variant="bodyMedium" color={Colors.textSecondary} style={styles.loginSubtitle}>
+              {t('auth.signInSubtitle')}
+            </Text>
 
-          {/* Error banner */}
-          {error && (
-            <View style={styles.errorBanner}>
-              <Text variant="bodySmall" color={Colors.error}>
-                {error}
-              </Text>
+            {/* Error banner */}
+            {error && (
+              <View style={styles.errorBanner}>
+                <Text variant="bodySmall" color={Colors.error}>
+                  {error}
+                </Text>
+              </View>
+            )}
+
+            {/* Mode toggle */}
+            <View style={styles.modeToggle}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.modeButton,
+                  mode === 'email' && styles.modeButtonActive,
+                  pressed && { opacity: 0.85 },
+                ]}
+                onPress={() => switchMode('email')}
+              >
+                <Mail
+                  size={16}
+                  color={mode === 'email' ? Colors.primary : Colors.textTertiary}
+                  strokeWidth={2}
+                />
+                <Text
+                  variant="labelLarge"
+                  color={mode === 'email' ? Colors.primary : Colors.textTertiary}
+                  style={styles.modeLabel}
+                >
+                  Email
+                </Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.modeButton,
+                  mode === 'phone' && styles.modeButtonActive,
+                  pressed && { opacity: 0.85 },
+                ]}
+                onPress={() => switchMode('phone')}
+              >
+                <Phone
+                  size={16}
+                  color={mode === 'phone' ? Colors.primary : Colors.textTertiary}
+                  strokeWidth={2}
+                />
+                <Text
+                  variant="labelLarge"
+                  color={mode === 'phone' ? Colors.primary : Colors.textTertiary}
+                  style={styles.modeLabel}
+                >
+                  Mobile
+                </Text>
+              </Pressable>
             </View>
-          )}
 
-          {/* Mode toggle */}
-          <View style={styles.modeToggle}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.modeButton,
-                mode === 'email' && styles.modeButtonActive,
-                pressed && { opacity: 0.85 },
-              ]}
-              onPress={() => switchMode('email')}
-            >
-              <Mail
-                size={16}
-                color={mode === 'email' ? Colors.primary : Colors.textTertiary}
-                strokeWidth={2}
-              />
-              <Text
-                variant="labelLarge"
-                color={mode === 'email' ? Colors.primary : Colors.textTertiary}
-                style={styles.modeLabel}
-              >
-                Email
+            {/* Identifier input */}
+            <Input
+              label={mode === 'email' ? t('auth.emailPlaceholder') : t('auth.phonePlaceholder')}
+              value={identifier}
+              onChangeText={(text) => {
+                setIdentifier(text);
+                setError(null);
+              }}
+              placeholder={mode === 'email' ? 'you@example.com' : '98765 43210'}
+              keyboardType={mode === 'email' ? 'email-address' : 'phone-pad'}
+              autoCapitalize="none"
+              leftIcon={
+                mode === 'email' ? (
+                  <Mail size={20} color={Colors.textTertiary} strokeWidth={2} />
+                ) : (
+                  <Phone size={20} color={Colors.textTertiary} strokeWidth={2} />
+                )
+              }
+              error={error && !identifier ? 'This field is required' : null}
+            />
+
+            {/* Password input */}
+            <Input
+              label={t('auth.passwordPlaceholder')}
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                setError(null);
+              }}
+              placeholder={t('auth.passwordPlaceholder')}
+              secureTextEntry
+              leftIcon={<Lock size={20} color={Colors.textTertiary} strokeWidth={2} />}
+              error={error && !password ? 'This field is required' : null}
+            />
+
+            {/* Forgot password */}
+            <Pressable style={styles.forgotButton} onPress={handleForgotPassword} hitSlop={8}>
+              <Text variant="labelLarge" color={Colors.primary} style={styles.forgotText}>
+                {t('auth.forgotPassword')}
               </Text>
             </Pressable>
+
+            {/* Login button */}
+            <Button
+              label={loading ? t('auth.signingIn') : t('auth.signIn')}
+              onPress={handleLogin}
+              loading={loading}
+              fullWidth
+              size="large"
+              style={styles.loginButton}
+            />
+          </Animated.View>
+
+          {/* ─── Social Login ─── */}
+          <Animated.View style={[styles.socialContainer, socialStyle]}>
+            {/* Divider */}
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text variant="bodySmall" color={Colors.textTertiary} style={styles.dividerText}>
+                or continue with
+              </Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Google login */}
             <Pressable
-              style={({ pressed }) => [
-                styles.modeButton,
-                mode === 'phone' && styles.modeButtonActive,
-                pressed && { opacity: 0.85 },
-              ]}
-              onPress={() => switchMode('phone')}
+              style={({ pressed }) => [styles.googleButton, pressed && styles.googlePressed]}
+              onPress={handleGoogleLogin}
             >
-              <Phone
-                size={16}
-                color={mode === 'phone' ? Colors.primary : Colors.textTertiary}
-                strokeWidth={2}
-              />
-              <Text
-                variant="labelLarge"
-                color={mode === 'phone' ? Colors.primary : Colors.textTertiary}
-                style={styles.modeLabel}
-              >
-                Mobile
+              <GoogleIcon />
+              <Text variant="labelLarge" color={Colors.textPrimary} style={styles.googleLabel}>
+                Continue with Google
               </Text>
             </Pressable>
-          </View>
 
-          {/* Identifier input */}
-          <Input
-            label={mode === 'email' ? 'Email or Mobile Number' : 'Mobile Number'}
-            value={identifier}
-            onChangeText={(text) => {
-              setIdentifier(text);
-              setError(null);
-            }}
-            placeholder={mode === 'email' ? 'you@example.com' : '98765 43210'}
-            keyboardType={mode === 'email' ? 'email-address' : 'phone-pad'}
-            autoCapitalize="none"
-            leftIcon={
-              mode === 'email' ? (
-                <Mail size={20} color={Colors.textTertiary} strokeWidth={2} />
-              ) : (
-                <Phone size={20} color={Colors.textTertiary} strokeWidth={2} />
-              )
-            }
-            error={error && !identifier ? 'This field is required' : null}
-          />
+            {/* Continue as Guest */}
+            <Pressable
+              style={({ pressed }) => [styles.guestButton, pressed && styles.guestButtonPressed]}
+              onPress={handleGuestLogin}
+              accessibilityRole="button"
+              accessibilityLabel={t('auth.continueAsGuest')}
+            >
+              <User size={18} color={Colors.primary} strokeWidth={2.5} />
+              <Text variant="labelLarge" color={Colors.primary} style={styles.guestButtonText}>
+                {t('auth.continueAsGuest')}
+              </Text>
+            </Pressable>
+          </Animated.View>
 
-          {/* Password input */}
-          <Input
-            label="Password"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              setError(null);
-            }}
-            placeholder="Enter your password"
-            secureTextEntry
-            leftIcon={<Lock size={20} color={Colors.textTertiary} strokeWidth={2} />}
-            error={error && !password ? 'This field is required' : null}
-          />
-
-          {/* Forgot password */}
-          <Pressable style={styles.forgotButton} onPress={handleForgotPassword} hitSlop={8}>
-            <Text variant="labelLarge" color={Colors.primary} style={styles.forgotText}>
-              Forgot Password?
-            </Text>
-          </Pressable>
-
-          {/* Login button */}
-          <Button
-            label="Login"
-            onPress={handleLogin}
-            loading={loading}
-            fullWidth
-            size="large"
-            style={styles.loginButton}
-          />
-        </Animated.View>
-
-        {/* ─── Social Login ─── */}
-        <Animated.View style={[styles.socialContainer, socialStyle]}>
-          {/* Divider */}
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text variant="bodySmall" color={Colors.textTertiary} style={styles.dividerText}>
-              or continue with
-            </Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Google login */}
-          <Pressable
-            style={({ pressed }) => [styles.googleButton, pressed && styles.googlePressed]}
-            onPress={handleGoogleLogin}
-          >
-            <GoogleIcon />
-            <Text variant="labelLarge" color={Colors.textPrimary} style={styles.googleLabel}>
-              Continue with Google
-            </Text>
-          </Pressable>
-        </Animated.View>
-
-        {/* ─── Footer ─── */}
-        <Animated.View style={[styles.footer, footerStyle, { paddingBottom: insets.bottom + Spacing.lg }]}>
-          <Text variant="bodyMedium" color={Colors.textSecondary}>
-            Don't have an account?{' '}
-          </Text>
-          <Pressable onPress={handleCreateAccount} hitSlop={8}>
-            <Text variant="labelLarge" color={Colors.primary} style={styles.createAccountText}>
-              Create Account
-            </Text>
-          </Pressable>
-        </Animated.View>
+          {/* ─── Footer ─── */}
+          <Animated.View style={[styles.footer, footerStyle]}>
+            <Pressable onPress={handleCreateAccount} hitSlop={8}>
+              <Text variant="labelLarge" color={Colors.primary} style={styles.createAccountText}>
+                {t('auth.dontHaveAccount')}
+              </Text>
+            </Pressable>
+          </Animated.View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
   );
@@ -364,63 +399,42 @@ function GoogleIcon() {
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  header: {
-    paddingBottom: Spacing.xxl,
-    paddingHorizontal: Spacing.base,
-    borderBottomLeftRadius: Radius.bottomSheet,
-    borderBottomRightRadius: Radius.bottomSheet,
-    overflow: 'hidden',
+  topBar: {
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.sm,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
     borderRadius: Radius.full,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.lg,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: Radius.full,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.25)',
-  },
-  logoText: {
-    fontFamily: FontFamily.bold,
-    fontSize: 22,
-    color: Colors.textOnPrimary,
-    fontWeight: '700',
-  },
-  appName: {
-    color: Colors.textOnPrimary,
-    fontFamily: FontFamily.bold,
-    letterSpacing: 1.5,
-  },
-  tagline: {
-    color: 'rgba(255,255,255,0.75)',
-    marginTop: Spacing.xs,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
   },
   keyboardView: {
     flex: 1,
   },
   formContainer: {
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xl,
+    paddingTop: Spacing.base,
   },
   loginTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: 28,
     color: Colors.textPrimary,
-    marginBottom: Spacing.xs,
+    marginBottom: 4,
   },
   loginSubtitle: {
+    fontFamily: FontFamily.regular,
+    fontSize: 15,
+    color: Colors.textSecondary,
     marginBottom: Spacing.xl,
   },
   errorBanner: {
@@ -507,13 +521,42 @@ const styles = StyleSheet.create({
   googleLabel: {
     fontWeight: '600',
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: Spacing.xxl,
+    paddingTop: Spacing.xl,
   },
   createAccountText: {
     fontWeight: '700',
+  },
+  guestButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    width: '100%',
+    minHeight: 48,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: Radius.button,
+    backgroundColor: Colors.primaryLight,
+    borderWidth: 1,
+    borderColor: '#B8E0C8',
+    marginTop: Spacing.md,
+  },
+  guestButtonPressed: {
+    backgroundColor: '#C8E6C9',
+    transform: [{ scale: 0.98 }],
+  },
+  guestButtonText: {
+    fontWeight: '600',
+    color: Colors.primary,
   },
 });
