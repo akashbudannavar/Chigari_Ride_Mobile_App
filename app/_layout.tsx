@@ -49,6 +49,7 @@ function RootNavigator() {
         <Stack.Screen name="tracking" options={{ headerShown: false }} />
         <Stack.Screen name="bus-details" options={{ headerShown: false }} />
         <Stack.Screen name="route-map" options={{ headerShown: false }} />
+        <Stack.Screen name="auth-callback" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" options={{ headerShown: false }} />
       </Stack>
       <StatusBar

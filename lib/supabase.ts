@@ -3,13 +3,22 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 const supabaseUrl =
-  process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+  process.env.EXPO_PUBLIC_SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  'https://placeholder.supabase.co';
 const supabaseAnonKey =
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  'placeholder-anon-key';
 
-if (!process.env.EXPO_PUBLIC_SUPABASE_URL || !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
+if (
+  (!process.env.EXPO_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL) ||
+  (!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY && !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+) {
   console.warn(
-    '[Supabase] Warning: EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY is not defined. Initialized with fallback credentials.'
+    '[Supabase] Warning: Supabase URL or Anon/Publishable Key is not defined. Initialized with fallback credentials.'
   );
 }
 
@@ -75,6 +84,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    flowType: 'pkce',
   },
 });
 

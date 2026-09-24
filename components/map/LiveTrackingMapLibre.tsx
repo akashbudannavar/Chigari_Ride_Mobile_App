@@ -518,15 +518,20 @@ export const LiveTrackingMapLibre = forwardRef<LiveTrackingMapRef, LiveTrackingM
             </Marker>
           )}
 
-          {/* Real-time Bus Markers */}
+          {/* Real-time Bus Markers (Keyed and selected by unique physical bus identity) */}
           {displayedBuses.map((bus) => {
-            const isSelected = bus.busNumber === selectedBus?.busNumber;
+            const isSelected = selectedBus
+              ? (bus.physicalBusId && selectedBus.physicalBusId
+                  ? bus.physicalBusId === selectedBus.physicalBusId
+                  : bus.id === selectedBus.id)
+              : false;
             const heading = typeof bus.heading === 'number' ? bus.heading : 0;
+            const busUniqueKey = `bus-${bus.physicalBusId || bus.id || bus.busNumber}`;
 
             return (
               <Marker
-                key={`bus-${bus.id || bus.busNumber}`}
-                id={`bus-${bus.id || bus.busNumber}`}
+                key={busUniqueKey}
+                id={busUniqueKey}
                 lngLat={[bus.longitude, bus.latitude]}
                 onPress={() => onSelectBus(bus)}
               >

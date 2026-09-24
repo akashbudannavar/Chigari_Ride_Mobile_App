@@ -47,7 +47,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 26086,
+    "distanceAlongRoute": 22953,
     "perpendicularDistance": 856.9
   },
   {
@@ -72,7 +72,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
     "servedServices": [
       "200A"
     ],
-    "distanceAlongRoute": 26093,
+    "distanceAlongRoute": 21891,
     "perpendicularDistance": 13.1
   },
   {
@@ -97,8 +97,8 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 25275,
-    "perpendicularDistance": 10.7
+    "distanceAlongRoute": 21488,
+    "perpendicularDistance": 42.1
   },
   {
     "id": "hdbrts-stop-04",
@@ -122,8 +122,8 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 24564,
-    "perpendicularDistance": 10.8
+    "distanceAlongRoute": 21213,
+    "perpendicularDistance": 32.3
   },
   {
     "id": "hdbrts-stop-05",
@@ -146,7 +146,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 24081,
+    "distanceAlongRoute": 20909,
     "perpendicularDistance": 17.6
   },
   {
@@ -170,7 +170,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 23595,
+    "distanceAlongRoute": 20422,
     "perpendicularDistance": 29.6
   },
   {
@@ -194,8 +194,8 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 22118,
-    "perpendicularDistance": 10.3
+    "distanceAlongRoute": 19948,
+    "perpendicularDistance": 22.6
   },
   {
     "id": "hdbrts-stop-08",
@@ -219,8 +219,8 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 20860,
-    "perpendicularDistance": 10.8
+    "distanceAlongRoute": 19203,
+    "perpendicularDistance": 17.1
   },
   {
     "id": "hdbrts-stop-09",
@@ -243,7 +243,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 19908,
+    "distanceAlongRoute": 18784,
     "perpendicularDistance": 18.3
   },
   {
@@ -266,7 +266,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 19063,
+    "distanceAlongRoute": 17938,
     "perpendicularDistance": 13.7
   },
   {
@@ -290,7 +290,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 17546,
+    "distanceAlongRoute": 16422,
     "perpendicularDistance": 143.2
   },
   {
@@ -313,7 +313,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 16450,
+    "distanceAlongRoute": 15325,
     "perpendicularDistance": 12.2
   },
   {
@@ -340,7 +340,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 15857,
+    "distanceAlongRoute": 14733,
     "perpendicularDistance": 12.3
   },
   {
@@ -365,7 +365,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 15185,
+    "distanceAlongRoute": 14060,
     "perpendicularDistance": 15
   },
   {
@@ -390,7 +390,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 14182,
+    "distanceAlongRoute": 13058,
     "perpendicularDistance": 15.8
   },
   {
@@ -414,7 +414,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 13618,
+    "distanceAlongRoute": 12494,
     "perpendicularDistance": 15.1
   },
   {
@@ -438,7 +438,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 13003,
+    "distanceAlongRoute": 11879,
     "perpendicularDistance": 39.8
   },
   {
@@ -462,7 +462,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 12150,
+    "distanceAlongRoute": 11026,
     "perpendicularDistance": 20.3
   },
   {
@@ -487,7 +487,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 11451,
+    "distanceAlongRoute": 10327,
     "perpendicularDistance": 15.7
   },
   {
@@ -511,7 +511,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 10306,
+    "distanceAlongRoute": 9182,
     "perpendicularDistance": 23.7
   },
   {
@@ -534,7 +534,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 9631,
+    "distanceAlongRoute": 8507,
     "perpendicularDistance": 17.8
   },
   {
@@ -558,7 +558,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 8696,
+    "distanceAlongRoute": 7572,
     "perpendicularDistance": 23
   },
   {
@@ -582,7 +582,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 7805,
+    "distanceAlongRoute": 6681,
     "perpendicularDistance": 11.4
   },
   {
@@ -606,7 +606,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 6966,
+    "distanceAlongRoute": 5842,
     "perpendicularDistance": 11.8
   },
   {
@@ -629,7 +629,7 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 6134,
+    "distanceAlongRoute": 5010,
     "perpendicularDistance": 14.2
   },
   {
@@ -656,8 +656,8 @@ export const CHIGARI_VERIFIED_STOPS: BRTSStop[] = [
       "100D",
       "202C"
     ],
-    "distanceAlongRoute": 4862,
-    "perpendicularDistance": 15.1
+    "distanceAlongRoute": 4632,
+    "perpendicularDistance": 15.6
   },
   {
     "id": "hdbrts-stop-27",
@@ -1451,174 +1451,6 @@ export const HDBRTS_CORRIDOR_COORDINATES: Coordinates[] = [
   {
     "latitude": 15.36467,
     "longitude": 75.124049
-  },
-  {
-    "latitude": 15.364766,
-    "longitude": 75.123957
-  },
-  {
-    "latitude": 15.36483,
-    "longitude": 75.123897
-  },
-  {
-    "latitude": 15.36518,
-    "longitude": 75.123505
-  },
-  {
-    "latitude": 15.365367,
-    "longitude": 75.123303
-  },
-  {
-    "latitude": 15.365554,
-    "longitude": 75.123118
-  },
-  {
-    "latitude": 15.365805,
-    "longitude": 75.122837
-  },
-  {
-    "latitude": 15.366091,
-    "longitude": 75.122545
-  },
-  {
-    "latitude": 15.366276,
-    "longitude": 75.122348
-  },
-  {
-    "latitude": 15.366467,
-    "longitude": 75.12215
-  },
-  {
-    "latitude": 15.366846,
-    "longitude": 75.121766
-  },
-  {
-    "latitude": 15.366915,
-    "longitude": 75.121697
-  },
-  {
-    "latitude": 15.367074,
-    "longitude": 75.121537
-  },
-  {
-    "latitude": 15.367238,
-    "longitude": 75.121376
-  },
-  {
-    "latitude": 15.3675,
-    "longitude": 75.121101
-  },
-  {
-    "latitude": 15.368139,
-    "longitude": 75.12051
-  },
-  {
-    "latitude": 15.368205,
-    "longitude": 75.120456
-  },
-  {
-    "latitude": 15.368253,
-    "longitude": 75.120524
-  },
-  {
-    "latitude": 15.368305,
-    "longitude": 75.120597
-  },
-  {
-    "latitude": 15.368352,
-    "longitude": 75.120663
-  },
-  {
-    "latitude": 15.368279,
-    "longitude": 75.120726
-  },
-  {
-    "latitude": 15.368218,
-    "longitude": 75.120787
-  },
-  {
-    "latitude": 15.367937,
-    "longitude": 75.121067
-  },
-  {
-    "latitude": 15.367707,
-    "longitude": 75.121288
-  },
-  {
-    "latitude": 15.367692,
-    "longitude": 75.121303
-  },
-  {
-    "latitude": 15.367628,
-    "longitude": 75.121363
-  },
-  {
-    "latitude": 15.367434,
-    "longitude": 75.121538
-  },
-  {
-    "latitude": 15.367187,
-    "longitude": 75.121771
-  },
-  {
-    "latitude": 15.367067,
-    "longitude": 75.121881
-  },
-  {
-    "latitude": 15.366942,
-    "longitude": 75.121992
-  },
-  {
-    "latitude": 15.366622,
-    "longitude": 75.122317
-  },
-  {
-    "latitude": 15.366209,
-    "longitude": 75.122754
-  },
-  {
-    "latitude": 15.365933,
-    "longitude": 75.123064
-  },
-  {
-    "latitude": 15.365823,
-    "longitude": 75.123181
-  },
-  {
-    "latitude": 15.365709,
-    "longitude": 75.123302
-  },
-  {
-    "latitude": 15.365295,
-    "longitude": 75.123743
-  },
-  {
-    "latitude": 15.365195,
-    "longitude": 75.123837
-  },
-  {
-    "latitude": 15.365098,
-    "longitude": 75.123935
-  },
-  {
-    "latitude": 15.364961,
-    "longitude": 75.124075
-  },
-  {
-    "latitude": 15.364896,
-    "longitude": 75.124142
-  },
-  {
-    "latitude": 15.364849,
-    "longitude": 75.124077
-  },
-  {
-    "latitude": 15.36483,
-    "longitude": 75.124052
-  },
-  {
-    "latitude": 15.364805,
-    "longitude": 75.124016
   },
   {
     "latitude": 15.364766,
@@ -3261,186 +3093,6 @@ export const HDBRTS_CORRIDOR_COORDINATES: Coordinates[] = [
     "longitude": 75.015271
   },
   {
-    "latitude": 15.442467,
-    "longitude": 75.015309
-  },
-  {
-    "latitude": 15.442537,
-    "longitude": 75.015334
-  },
-  {
-    "latitude": 15.442617,
-    "longitude": 75.01535
-  },
-  {
-    "latitude": 15.442292,
-    "longitude": 75.015609
-  },
-  {
-    "latitude": 15.441906,
-    "longitude": 75.015923
-  },
-  {
-    "latitude": 15.44169,
-    "longitude": 75.016099
-  },
-  {
-    "latitude": 15.441114,
-    "longitude": 75.016704
-  },
-  {
-    "latitude": 15.440922,
-    "longitude": 75.016928
-  },
-  {
-    "latitude": 15.440796,
-    "longitude": 75.017075
-  },
-  {
-    "latitude": 15.440458,
-    "longitude": 75.017417
-  },
-  {
-    "latitude": 15.440257,
-    "longitude": 75.017604
-  },
-  {
-    "latitude": 15.440196,
-    "longitude": 75.017544
-  },
-  {
-    "latitude": 15.440158,
-    "longitude": 75.01751
-  },
-  {
-    "latitude": 15.440119,
-    "longitude": 75.017455
-  },
-  {
-    "latitude": 15.440338,
-    "longitude": 75.017234
-  },
-  {
-    "latitude": 15.440698,
-    "longitude": 75.016835
-  },
-  {
-    "latitude": 15.441033,
-    "longitude": 75.016496
-  },
-  {
-    "latitude": 15.441274,
-    "longitude": 75.016261
-  },
-  {
-    "latitude": 15.442125,
-    "longitude": 75.015465
-  },
-  {
-    "latitude": 15.442412,
-    "longitude": 75.015271
-  },
-  {
-    "latitude": 15.443122,
-    "longitude": 75.014473
-  },
-  {
-    "latitude": 15.443622,
-    "longitude": 75.013901
-  },
-  {
-    "latitude": 15.444129,
-    "longitude": 75.013472
-  },
-  {
-    "latitude": 15.44422,
-    "longitude": 75.01343
-  },
-  {
-    "latitude": 15.444809,
-    "longitude": 75.013155
-  },
-  {
-    "latitude": 15.445203,
-    "longitude": 75.013002
-  },
-  {
-    "latitude": 15.445905,
-    "longitude": 75.0126
-  },
-  {
-    "latitude": 15.446809,
-    "longitude": 75.012208
-  },
-  {
-    "latitude": 15.447135,
-    "longitude": 75.012124
-  },
-  {
-    "latitude": 15.447153,
-    "longitude": 75.012204
-  },
-  {
-    "latitude": 15.447158,
-    "longitude": 75.012254
-  },
-  {
-    "latitude": 15.447182,
-    "longitude": 75.012304
-  },
-  {
-    "latitude": 15.446828,
-    "longitude": 75.012442
-  },
-  {
-    "latitude": 15.446124,
-    "longitude": 75.012784
-  },
-  {
-    "latitude": 15.445911,
-    "longitude": 75.012887
-  },
-  {
-    "latitude": 15.445191,
-    "longitude": 75.013211
-  },
-  {
-    "latitude": 15.444823,
-    "longitude": 75.013361
-  },
-  {
-    "latitude": 15.444525,
-    "longitude": 75.013482
-  },
-  {
-    "latitude": 15.444204,
-    "longitude": 75.013663
-  },
-  {
-    "latitude": 15.443788,
-    "longitude": 75.014003
-  },
-  {
-    "latitude": 15.443428,
-    "longitude": 75.014405
-  },
-  {
-    "latitude": 15.442617,
-    "longitude": 75.01535
-  },
-  {
-    "latitude": 15.442537,
-    "longitude": 75.015334
-  },
-  {
-    "latitude": 15.442467,
-    "longitude": 75.015309
-  },
-  {
-    "latitude": 15.442412,
-    "longitude": 75.015271
-  },
-  {
     "latitude": 15.443122,
     "longitude": 75.014473
   },
@@ -3615,174 +3267,6 @@ export const HDBRTS_CORRIDOR_COORDINATES: Coordinates[] = [
   {
     "latitude": 15.456004,
     "longitude": 75.006849
-  },
-  {
-    "latitude": 15.456193,
-    "longitude": 75.006817
-  },
-  {
-    "latitude": 15.456202,
-    "longitude": 75.006905
-  },
-  {
-    "latitude": 15.456208,
-    "longitude": 75.006967
-  },
-  {
-    "latitude": 15.456213,
-    "longitude": 75.007025
-  },
-  {
-    "latitude": 15.456047,
-    "longitude": 75.007049
-  },
-  {
-    "latitude": 15.45566,
-    "longitude": 75.007124
-  },
-  {
-    "latitude": 15.455362,
-    "longitude": 75.007182
-  },
-  {
-    "latitude": 15.455151,
-    "longitude": 75.007216
-  },
-  {
-    "latitude": 15.455017,
-    "longitude": 75.007274
-  },
-  {
-    "latitude": 15.454919,
-    "longitude": 75.007377
-  },
-  {
-    "latitude": 15.454893,
-    "longitude": 75.007315
-  },
-  {
-    "latitude": 15.454847,
-    "longitude": 75.007251
-  },
-  {
-    "latitude": 15.454821,
-    "longitude": 75.007196
-  },
-  {
-    "latitude": 15.454946,
-    "longitude": 75.007083
-  },
-  {
-    "latitude": 15.455101,
-    "longitude": 75.007009
-  },
-  {
-    "latitude": 15.455109,
-    "longitude": 75.007006
-  },
-  {
-    "latitude": 15.455359,
-    "longitude": 75.006959
-  },
-  {
-    "latitude": 15.456004,
-    "longitude": 75.006849
-  },
-  {
-    "latitude": 15.456193,
-    "longitude": 75.006817
-  },
-  {
-    "latitude": 15.45641,
-    "longitude": 75.006819
-  },
-  {
-    "latitude": 15.456734,
-    "longitude": 75.006877
-  },
-  {
-    "latitude": 15.456928,
-    "longitude": 75.006948
-  },
-  {
-    "latitude": 15.457516,
-    "longitude": 75.007189
-  },
-  {
-    "latitude": 15.457746,
-    "longitude": 75.007269
-  },
-  {
-    "latitude": 15.458457,
-    "longitude": 75.007523
-  },
-  {
-    "latitude": 15.458605,
-    "longitude": 75.007579
-  },
-  {
-    "latitude": 15.458721,
-    "longitude": 75.007636
-  },
-  {
-    "latitude": 15.458973,
-    "longitude": 75.007795
-  },
-  {
-    "latitude": 15.458951,
-    "longitude": 75.007806
-  },
-  {
-    "latitude": 15.458816,
-    "longitude": 75.007807
-  },
-  {
-    "latitude": 15.458581,
-    "longitude": 75.007778
-  },
-  {
-    "latitude": 15.458395,
-    "longitude": 75.00773
-  },
-  {
-    "latitude": 15.458024,
-    "longitude": 75.007584
-  },
-  {
-    "latitude": 15.457674,
-    "longitude": 75.007446
-  },
-  {
-    "latitude": 15.457444,
-    "longitude": 75.007354
-  },
-  {
-    "latitude": 15.456861,
-    "longitude": 75.007115
-  },
-  {
-    "latitude": 15.456717,
-    "longitude": 75.007067
-  },
-  {
-    "latitude": 15.456554,
-    "longitude": 75.007039
-  },
-  {
-    "latitude": 15.456383,
-    "longitude": 75.007029
-  },
-  {
-    "latitude": 15.456213,
-    "longitude": 75.007025
-  },
-  {
-    "latitude": 15.456208,
-    "longitude": 75.006967
-  },
-  {
-    "latitude": 15.456202,
-    "longitude": 75.006905
   },
   {
     "latitude": 15.456193,
@@ -4209,66 +3693,6 @@ export const HDBRTS_DHARWAD_NEW_COORDINATES: Coordinates[] = [
     "longitude": 75.007584
   },
   {
-    "latitude": 15.457674,
-    "longitude": 75.007446
-  },
-  {
-    "latitude": 15.457444,
-    "longitude": 75.007354
-  },
-  {
-    "latitude": 15.456861,
-    "longitude": 75.007115
-  },
-  {
-    "latitude": 15.456717,
-    "longitude": 75.007067
-  },
-  {
-    "latitude": 15.456554,
-    "longitude": 75.007039
-  },
-  {
-    "latitude": 15.456383,
-    "longitude": 75.007029
-  },
-  {
-    "latitude": 15.456213,
-    "longitude": 75.007025
-  },
-  {
-    "latitude": 15.456208,
-    "longitude": 75.006967
-  },
-  {
-    "latitude": 15.456202,
-    "longitude": 75.006905
-  },
-  {
-    "latitude": 15.456193,
-    "longitude": 75.006817
-  },
-  {
-    "latitude": 15.45641,
-    "longitude": 75.006819
-  },
-  {
-    "latitude": 15.456734,
-    "longitude": 75.006877
-  },
-  {
-    "latitude": 15.456928,
-    "longitude": 75.006948
-  },
-  {
-    "latitude": 15.457516,
-    "longitude": 75.007189
-  },
-  {
-    "latitude": 15.457746,
-    "longitude": 75.007269
-  },
-  {
     "latitude": 15.458457,
     "longitude": 75.007523
   },
@@ -4425,14 +3849,15 @@ export const CHIGARI_CORRIDOR_ROUTE: ChigariRoute = {
   color: '#2E7D32',
   origin: 'Hubballi CBT',
   destination: 'Dharwad BRTS Terminal',
-  totalDistanceMeters: 26093,
+  totalDistanceMeters: 21891,
   stops: CHIGARI_VERIFIED_STOPS,
   coordinates: HDBRTS_CORRIDOR_COORDINATES,
 };
 
 // ─── Network Segments for Clean Branch Rendering (No Overlaps / Duplicate Lines) ───
 // Trunk Corridor: Dr. B R Ambedkar Circle (idx 76) ↔ Jubilee Circle (idx 876)
-export const HDBRTS_TRUNK_COORDINATES: Coordinates[] = HDBRTS_CORRIDOR_COORDINATES.slice(76, 877);
+// Trunk Corridor: Dr. B R Ambedkar Circle / Hosur Cross (idx 76) ↔ Jubilee Circle (idx 591)
+export const HDBRTS_TRUNK_COORDINATES: Coordinates[] = HDBRTS_CORRIDOR_COORDINATES.slice(76, 592);
 
 // Southern Branch A: Ambedkar Circle (idx 76) ➔ Hubballi CBT (idx 0)
 export const HDBRTS_CBT_BRANCH_COORDINATES: Coordinates[] = HDBRTS_CORRIDOR_COORDINATES.slice(0, 77);
@@ -4441,18 +3866,25 @@ export const HDBRTS_CBT_BRANCH_COORDINATES: Coordinates[] = HDBRTS_CORRIDOR_COOR
 export const HDBRTS_RAILWAY_COORDINATES: Coordinates[] = HDBRTS_RAILWAY_BRANCH_COORDINATES;
 
 // Northern Branch A: Jubilee Circle (idx 876) ➔ Dharwad BRTS Terminal (idx 908)
-export const HDBRTS_DHARWAD_BRTS_BRANCH_COORDINATES: Coordinates[] = HDBRTS_CORRIDOR_COORDINATES.slice(876, 909);
+// Northern Branch A: Jubilee Circle (idx 591) ➔ Dharwad BRTS Terminal (idx 608)
+export const HDBRTS_DHARWAD_BRTS_BRANCH_COORDINATES: Coordinates[] = HDBRTS_CORRIDOR_COORDINATES.slice(591, 609);
 
 // Northern Branch B: Jubilee Circle ➔ Dharwad New Bus Stand
 export const HDBRTS_DHARWAD_NEW_BRANCH_COORDINATES: Coordinates[] = HDBRTS_DHARWAD_NEW_COORDINATES;
 
 
-// ─── 4 Simulated Live Chigari Buses (Official Route Numbers Only) ─────────────
-// Strictly: 200A, 201B, 100D, 202C. NO fake license plates.
+// ─── Representative Physical Chigari Buses (Decoupled Physical Bus Identities) ──────
+// Multiple physical buses operating under authoritative service numbers (200A, 201B, 100D, 202C).
 export const INITIAL_CHIGARI_BUSES: ChigariBus[] = [
+  // ─── Service 200A: Physical Bus 1 ───
   {
-    id: 'bus-200a',
+    id: 'CR-BUS-001',
+    physicalBusId: 'CR-BUS-001',
     busNumber: '200A',
+    fleetNumber: 'KA-25-F-1001',
+    trackingSource: 'observed',
+    movementState: 'moving',
+    confidenceTier: 'LIVE',
     routeName: 'Route 200A • Dharwad BRTS ➔ Hubballi CBT',
     routeColor: '#2E7D32',
     direction: 'To Hubballi CBT',
@@ -4471,9 +3903,69 @@ export const INITIAL_CHIGARI_BUSES: ChigariBus[] = [
     isSelected: true,
     isReverse: true, // Heading towards Hubballi CBT
   },
+  // ─── Service 200A: Physical Bus 2 ───
   {
-    id: 'bus-201b',
+    id: 'CR-BUS-002',
+    physicalBusId: 'CR-BUS-002',
+    busNumber: '200A',
+    fleetNumber: 'KA-25-F-1002',
+    trackingSource: 'observed',
+    movementState: 'moving',
+    confidenceTier: 'LIVE',
+    routeName: 'Route 200A • Hubballi CBT ➔ Dharwad BRTS',
+    routeColor: '#2E7D32',
+    direction: 'To Dharwad BRTS Terminal',
+    crowd: 'Low',
+    status: 'In Transit • Near Unakal Lake',
+    latitude: 15.3789,
+    longitude: 75.1098,
+    heading: 318,
+    speed: 35,
+    progressMeters: 5970, // Past Unakal Lake heading North to Biridevarakoppa
+    currentStop: CHIGARI_VERIFIED_STOPS[22], // Unakal Lake
+    nextStop: CHIGARI_VERIFIED_STOPS[21],    // Biridevarakoppa
+    distanceToNextStop: 720,
+    etaMinutes: 2,
+    lastUpdated: 'Just now',
+    isSelected: false,
+    isReverse: false, // Heading towards Dharwad BRTS Terminal
+  },
+  // ─── Service 200A: Physical Bus 3 ───
+  {
+    id: 'CR-BUS-003',
+    physicalBusId: 'CR-BUS-003',
+    busNumber: '200A',
+    fleetNumber: 'KA-25-F-1003',
+    trackingSource: 'predicted',
+    movementState: 'moving',
+    confidenceTier: 'RECENT',
+    routeName: 'Route 200A • Dharwad BRTS ➔ Hubballi CBT',
+    routeColor: '#2E7D32',
+    direction: 'To Hubballi CBT',
+    crowd: 'High',
+    status: 'In Transit • Vidyagiri',
+    latitude: 15.4462,
+    longitude: 75.0118,
+    heading: 140,
+    speed: 30,
+    progressMeters: 19800, // Near Vidyagiri heading South toward Toll Naka
+    currentStop: CHIGARI_VERIFIED_STOPS[7],  // Vidyagiri
+    nextStop: CHIGARI_VERIFIED_STOPS[6],    // Toll Naka
+    distanceToNextStop: 650,
+    etaMinutes: 2,
+    lastUpdated: '1m ago',
+    isSelected: false,
+    isReverse: true,
+  },
+  // ─── Service 201B: Physical Bus 1 ───
+  {
+    id: 'CR-BUS-004',
+    physicalBusId: 'CR-BUS-004',
     busNumber: '201B',
+    fleetNumber: 'KA-25-F-1004',
+    trackingSource: 'observed',
+    movementState: 'moving',
+    confidenceTier: 'LIVE',
     routeName: 'Route 201B • Hubballi Railway Station ➔ Dharwad New Bus Stand',
     routeColor: '#1B5E20',
     direction: 'To Dharwad New Bus Stand',
@@ -4483,7 +3975,7 @@ export const INITIAL_CHIGARI_BUSES: ChigariBus[] = [
     longitude: 75.0805,
     heading: 315,
     speed: 42,
-    progressMeters: 11451, // Past Navanagar heading toward RTO
+    progressMeters: 10327, // Past Navanagar heading toward RTO
     currentStop: CHIGARI_VERIFIED_STOPS[18], // Navanagar
     nextStop: CHIGARI_VERIFIED_STOPS[17],    // RTO
     distanceToNextStop: 699,
@@ -4492,9 +3984,42 @@ export const INITIAL_CHIGARI_BUSES: ChigariBus[] = [
     isSelected: false,
     isReverse: false,
   },
+  // ─── Service 201B: Physical Bus 2 ───
   {
-    id: 'bus-100d',
+    id: 'CR-BUS-005',
+    physicalBusId: 'CR-BUS-005',
+    busNumber: '201B',
+    fleetNumber: 'KA-25-F-1005',
+    trackingSource: 'observed',
+    movementState: 'moving',
+    confidenceTier: 'LIVE',
+    routeName: 'Route 201B • Dharwad New Bus Stand ➔ Hubballi Railway Station',
+    routeColor: '#1B5E20',
+    direction: 'To Hubballi Railway Station',
+    crowd: 'Moderate',
+    status: 'In Transit • Near SDM',
+    latitude: 15.4215,
+    longitude: 75.0452,
+    heading: 135,
+    speed: 38,
+    progressMeters: 14850, // Near SDM Medical College heading South
+    currentStop: CHIGARI_VERIFIED_STOPS[12], // SDM Medical College
+    nextStop: CHIGARI_VERIFIED_STOPS[11],    // Sattur
+    distanceToNextStop: 580,
+    etaMinutes: 1,
+    lastUpdated: 'Just now',
+    isSelected: false,
+    isReverse: true,
+  },
+  // ─── Service 100D: Physical Bus 1 ───
+  {
+    id: 'CR-BUS-006',
+    physicalBusId: 'CR-BUS-006',
     busNumber: '100D',
+    fleetNumber: 'KA-25-F-1006',
+    trackingSource: 'observed',
+    movementState: 'moving',
+    confidenceTier: 'LIVE',
     routeName: 'Route 100D • Hubballi Railway Station ➔ Dharwad New Bus Stand',
     routeColor: '#388E3C',
     direction: 'To Dharwad New Bus Stand',
@@ -4504,7 +4029,7 @@ export const INITIAL_CHIGARI_BUSES: ChigariBus[] = [
     longitude: 75.0218,
     heading: 310,
     speed: 28,
-    progressMeters: 19063, // Past Lakamanahalli heading toward Gandhinagar
+    progressMeters: 17938, // Past Lakamanahalli heading toward Gandhinagar
     currentStop: CHIGARI_VERIFIED_STOPS[9], // Lakamanahalli
     nextStop: CHIGARI_VERIFIED_STOPS[8],    // Gandhinagar
     distanceToNextStop: 845,
@@ -4513,9 +4038,15 @@ export const INITIAL_CHIGARI_BUSES: ChigariBus[] = [
     isSelected: false,
     isReverse: false,
   },
+  // ─── Service 202C: Physical Bus 1 ───
   {
-    id: 'bus-202c',
+    id: 'CR-BUS-007',
+    physicalBusId: 'CR-BUS-007',
     busNumber: '202C',
+    fleetNumber: 'KA-25-F-1007',
+    trackingSource: 'observed',
+    movementState: 'moving',
+    confidenceTier: 'LIVE',
     routeName: 'Route 202C • Hubballi Gokul ➔ Dharwad New Bus Stand',
     routeColor: '#7B1FA2',
     direction: 'To Dharwad New Bus Stand',

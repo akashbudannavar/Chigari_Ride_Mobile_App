@@ -33,9 +33,57 @@ export type BusDirection =
   | 'To Hubballi Railway Station'
   | 'To Gokul Bus Station';
 
+export type TrackingSource = 'observed' | 'predicted';
+
+export type MovementState = 'moving' | 'stopped' | 'at_station' | 'offline';
+
+export type ConfidenceTier = 'LIVE' | 'RECENT' | 'ESTIMATED' | 'STALE' | 'OFFLINE';
+
+/**
+ * Authoritative Physical Bus Entity
+ * Represents an individual physical vehicle operating on the HDBRTS corridor.
+ * Decoupled from the public transit service number (e.g., multiple physical buses run on service 200A).
+ */
+export interface PhysicalBus {
+  physicalBusId: string;
+  serviceNumber: ChigariBusNumber;
+  fleetNumber?: string;
+  latitude: number;
+  longitude: number;
+  heading: number;
+  speed: number;
+  trackingSource: TrackingSource;
+  movementState: MovementState;
+  confidenceTier: ConfidenceTier;
+  lastObservationAt: string;
+  firstEstablishedAt: string;
+}
+
+/**
+ * Passenger Observation (Type Model Only for future crowdsourced/telemetry ingestion)
+ * Anonymous, session-scoped observation payload without attachment to user account identity.
+ */
+export interface PassengerObservation {
+  observationId: string;
+  sessionId: string;
+  serviceNumber: ChigariBusNumber;
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  speed?: number;
+  heading?: number;
+  timestamp: string;
+  reportedFleetNumber?: string;
+}
+
 export interface ChigariBus {
   id: string;
+  physicalBusId: string;
   busNumber: ChigariBusNumber;
+  fleetNumber?: string;
+  trackingSource?: TrackingSource;
+  movementState?: MovementState;
+  confidenceTier?: ConfidenceTier;
   routeName: string;
   routeColor: string;
   direction: BusDirection;
@@ -51,6 +99,7 @@ export interface ChigariBus {
   distanceToNextStop: number;// Distance to next station in meters
   etaMinutes: number;        // Dynamic ETA in minutes
   lastUpdated: string;
+  lastObservationAt?: string;
   isSelected?: boolean;
   isReverse?: boolean;       // true if traveling from Dharwad to Hubballi
 }

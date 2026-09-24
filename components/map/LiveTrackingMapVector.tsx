@@ -621,14 +621,19 @@ export const LiveTrackingMapVector = forwardRef<LiveTrackingMapRef, LiveTracking
 
         {/* ─── Simulated Live Chigari Buses (Filtered when journey is active) ─── */}
         {displayedBuses.map((bus) => {
-          const isSelected = bus.busNumber === selectedBus?.busNumber;
+          const isSelected = selectedBus
+            ? (bus.physicalBusId && selectedBus.physicalBusId
+                ? bus.physicalBusId === selectedBus.physicalBusId
+                : bus.id === selectedBus.id)
+            : false;
           const bx = toScreenX(bus.longitude);
           const by = toScreenY(bus.latitude);
           const heading = typeof bus.heading === 'number' ? bus.heading : 0;
+          const busKey = bus.physicalBusId || bus.id || bus.busNumber;
 
           return (
             <Pressable
-              key={bus.id}
+              key={busKey}
               style={[
                 styles.busMarkerContainer,
                 { left: bx - 22, top: by - 36 },

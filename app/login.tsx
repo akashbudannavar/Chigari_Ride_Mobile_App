@@ -28,7 +28,7 @@ type InputMode = 'email' | 'phone';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
-  const { signIn, resendVerificationEmail, continueAsGuest } = useAuth();
+  const { signIn, signInWithGoogle, resendVerificationEmail, continueAsGuest } = useAuth();
   const { t } = useLanguage();
 
   const [mode, setMode] = useState<InputMode>('email');
@@ -134,20 +134,29 @@ export default function LoginScreen() {
 
   const handleGoogleLogin = async () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLoading(true);
+    setError(null);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-      });
-      if (error) {
-        setError('Google sign-in is not configured yet. Please continue with Email.');
-        if (Platform.OS !== 'web') {
-          Alert.alert('Google Sign-In', 'Google sign-in is not configured yet. Please continue with Email.');
-        }
+      const { error: googleError, cancelled } = await signInWithGoogle();
+      setLoading(false);
+      if (cancelled) {
+        // User cancelled the auth session; quietly return without error or navigation
+        return;
       }
-    } catch {
-      setError('Google sign-in is not configured yet. Please continue with Email.');
+      if (googleError) {
+        setError(googleError);
+        if (Platform.OS !== 'web') {
+          Alert.alert('Google Sign-In', googleError);
+        }
+      } else {
+        router.replace('/(tabs)');
+      }
+    } catch (err: any) {
+      setLoading(false);
+      const msg = err?.message || 'Failed to complete Google sign-in';
+      setError(msg);
       if (Platform.OS !== 'web') {
-        Alert.alert('Google Sign-In', 'Google sign-in is not configured yet. Please continue with Email.');
+        Alert.alert('Google Sign-In', msg);
       }
     }
   };

@@ -36,7 +36,7 @@ import {
 import { Screen } from '@/components/Screen';
 import { Text } from '@/components/ui/Text';
 import { Colors, FontFamily, Spacing, Radius, Shadows } from '@/constants/theme';
-import { useDemoBusTracking } from '@/hooks/useDemoBusTracking';
+import { useLiveBusTracking } from '@/hooks/useLiveBusTracking';
 import { LiveTrackingMap, LiveTrackingMapRef } from '@/components/map/LiveTrackingMap';
 import { BusDetailsCard } from '@/components/BusDetailsCard';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -69,14 +69,14 @@ export default function LiveScreen() {
     cancelJourney,
   } = useJourney();
 
-  // Simulated live tracking hook with 4 concurrent buses along the HDBRTS corridor (Stationary default)
+  // Supabase Realtime live bus tracking hook with seamless demo fallback
   const {
     buses,
     selectedBus,
     activeRoute,
     userLocation,
     selectBus,
-  } = useDemoBusTracking();
+  } = useLiveBusTracking();
 
   const params = useLocalSearchParams<{ bus?: string; ticketId?: string }>();
   const [searchQuery, setSearchQuery] = useState('');
@@ -254,7 +254,7 @@ export default function LiveScreen() {
 
   const handleBusSelect = useCallback((bus: ChigariBus) => {
     triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    selectBus(bus.busNumber as ChigariBusNumber);
+    selectBus(bus);
     if (mapRef.current) {
       mapRef.current.centerOnBus(bus);
     }

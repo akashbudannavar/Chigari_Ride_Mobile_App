@@ -27,7 +27,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 export default function SignUpScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
-  const { signUp, resendVerificationEmail, continueAsGuest } = useAuth();
+  const { signUp, signInWithGoogle, resendVerificationEmail, continueAsGuest } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [mobile, setMobile] = useState('');
@@ -201,20 +201,29 @@ export default function SignUpScreen() {
 
   const handleGoogleLogin = async () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLoading(true);
+    setError(null);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-      });
-      if (error) {
-        setError('Google sign-in is not configured yet. Please continue with Email or as Guest.');
-        if (Platform.OS !== 'web') {
-          Alert.alert('Google Sign-In', 'Google sign-in is not configured yet. Please continue with Email or as Guest.');
-        }
+      const { error: googleError, cancelled } = await signInWithGoogle();
+      setLoading(false);
+      if (cancelled) {
+        // User cancelled the auth session; quietly return without error or navigation
+        return;
       }
-    } catch {
-      setError('Google sign-in is not configured yet. Please continue with Email or as Guest.');
+      if (googleError) {
+        setError(googleError);
+        if (Platform.OS !== 'web') {
+          Alert.alert('Google Sign-In', googleError);
+        }
+      } else {
+        router.replace('/(tabs)');
+      }
+    } catch (err: any) {
+      setLoading(false);
+      const msg = err?.message || 'Failed to complete Google sign-in';
+      setError(msg);
       if (Platform.OS !== 'web') {
-        Alert.alert('Google Sign-In', 'Google sign-in is not configured yet. Please continue with Email or as Guest.');
+        Alert.alert('Google Sign-In', msg);
       }
     }
   };

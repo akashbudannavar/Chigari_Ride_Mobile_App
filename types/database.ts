@@ -39,6 +39,8 @@ export interface RouteStop {
 export interface Bus {
   id: string;
   plate: string;
+  fleet_number?: string | null;
+  is_active?: boolean;
   route_id: string | null;
   capacity: number;
   type: RouteType;
@@ -49,13 +51,34 @@ export interface Bus {
 export interface LivePosition {
   id: string;
   bus_id: string;
+  service_number?: string | null;
   lat: number;
   lng: number;
   heading: number;
   speed: number;
   occupancy: OccupancyLevel;
+  tracking_source?: 'observed' | 'predicted';
+  movement_state?: 'moving' | 'stopped' | 'at_station' | 'offline';
+  confidence_tier?: 'LIVE' | 'RECENT' | 'ESTIMATED' | 'STALE' | 'OFFLINE';
+  last_observation_at?: string;
+  first_established_at?: string;
+  active_contributors?: number;
   updated_at: string;
   bus?: Bus;
+}
+
+export interface PassengerObservation {
+  id: string;
+  session_id: string;
+  service_number: string;
+  lat: number;
+  lng: number;
+  accuracy: number;
+  speed: number | null;
+  heading: number | null;
+  reported_fleet_number: string | null;
+  observed_at: string;
+  created_at: string;
 }
 
 export interface Schedule {
@@ -160,6 +183,11 @@ export interface Database {
         Row: LivePosition;
         Insert: Partial<LivePosition>;
         Update: Partial<LivePosition>;
+      };
+      passenger_observations: {
+        Row: PassengerObservation;
+        Insert: Omit<PassengerObservation, 'id' | 'created_at'> & { id?: string; created_at?: string };
+        Update: Partial<PassengerObservation>;
       };
       schedules: {
         Row: Schedule;

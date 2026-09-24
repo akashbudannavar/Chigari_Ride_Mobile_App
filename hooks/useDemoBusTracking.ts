@@ -22,7 +22,7 @@ export function useDemoBusTracking(options: TrackingOptions = {}) {
   const { simulationSpeedMultiplier = 3.0, updateIntervalMs = 250 } = options;
 
   const [buses, setBuses] = useState<ChigariBus[]>(INITIAL_CHIGARI_BUSES);
-  const [selectedBusNumber, setSelectedBusNumber] = useState<ChigariBusNumber | null>(null);
+  const [selectedBusId, setSelectedBusId] = useState<string | null>('CR-BUS-001'); // Initially select first physical bus
   const [isPlaying, setIsPlaying] = useState<boolean>(false); // Stationary by default (Requirement 1 & 2)
 
   // Precomputed cumulative distance array for the HDBRTS corridor polyline
@@ -31,7 +31,9 @@ export function useDemoBusTracking(options: TrackingOptions = {}) {
   );
 
   const activeRoute: ChigariRoute = CHIGARI_CORRIDOR_ROUTE;
-  const selectedBus = selectedBusNumber ? (buses.find((b) => b.busNumber === selectedBusNumber) ?? null) : null;
+  const selectedBus = selectedBusId
+    ? (buses.find((b) => b.physicalBusId === selectedBusId || b.id === selectedBusId) ?? null)
+    : null;
 
   const togglePlayPause = useCallback(() => {
     setIsPlaying((prev) => !prev);
@@ -39,14 +41,40 @@ export function useDemoBusTracking(options: TrackingOptions = {}) {
 
   const resetDemo = useCallback(() => {
     setBuses(INITIAL_CHIGARI_BUSES);
-    setSelectedBusNumber(null);
+    setSelectedBusId('CR-BUS-001');
   }, []);
 
-  const selectBus = useCallback((busNumber: ChigariBusNumber | null) => {
-    setSelectedBusNumber(busNumber);
-    setBuses((prev) =>
-      prev.map((b) => ({ ...b, isSelected: busNumber !== null && b.busNumber === busNumber })),
-    );
+  const selectBus = useCallback((busOrIdOrNumber: ChigariBus | string | null) => {
+    if (!busOrIdOrNumber) {
+      setSelectedBusId(null);
+      setBuses((prev) => prev.map((b) => ({ ...b, isSelected: false })));
+      return;
+    }
+
+    setBuses((prev) => {
+      let targetBus: ChigariBus | undefined;
+
+      if (typeof busOrIdOrNumber === 'object' && busOrIdOrNumber !== null) {
+        targetBus = busOrIdOrNumber;
+      } else {
+        // First try to match physicalBusId or id
+        targetBus = prev.find(
+          (b) => b.physicalBusId === busOrIdOrNumber || b.id === busOrIdOrNumber
+        );
+        // If not found, match by service number (busNumber)
+        if (!targetBus) {
+          targetBus = prev.find((b) => b.busNumber === busOrIdOrNumber);
+        }
+      }
+
+      const chosenId = targetBus ? (targetBus.physicalBusId || targetBus.id) : null;
+      setSelectedBusId(chosenId);
+
+      return prev.map((b) => ({
+        ...b,
+        isSelected: chosenId !== null && (b.physicalBusId === chosenId || b.id === chosenId),
+      }));
+    });
   }, []);
 
   // Simulation animation loop

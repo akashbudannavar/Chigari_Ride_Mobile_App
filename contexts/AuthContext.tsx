@@ -1,7 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types/database';
+
+WebBrowser.maybeCompleteAuthSession();
 
 interface AuthState {
   session: Session | null;
@@ -26,6 +31,7 @@ export interface SignInResponse {
 interface AuthContextValue extends AuthState {
   signIn: (email: string, password: string) => Promise<SignInResponse>;
   signUp: (email: string, password: string, fullName: string, phone: string) => Promise<SignUpResponse>;
+  signInWithGoogle: () => Promise<{ error: string | null; cancelled?: boolean }>;
   resendVerificationEmail: (email: string) => Promise<{ error: string | null }>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: string | null }>;
   continueAsGuest: () => void;
@@ -312,6 +318,80 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async (): Promise<{ error: string | null; cancelled?: boolean }> => {
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+    try {
+      const redirectUrl = makeRedirectUri({
+        scheme: 'chigariride',
+        path: 'auth-callback',
+      });
+
+      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (oauthError) {
+        setState((prev) => ({ ...prev, loading: false, error: oauthError.message }));
+        return { error: oauthError.message };
+      }
+
+      if (!data?.url) {
+        const msg = 'Failed to generate Google authentication URL.';
+        setState((prev) => ({ ...prev, loading: false, error: msg }));
+        return { error: msg };
+      }
+
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined') {
+          window.location.href = data.url;
+        }
+        return { error: null };
+      }
+
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+
+      if (result.type === 'success' && result.url) {
+        const match = result.url.match(/[?&]code=([^&#]+)/);
+        const code = match ? decodeURIComponent(match[1]) : null;
+
+        if (code) {
+          const { data: sessionData, error: exchangeError } =
+            await supabase.auth.exchangeCodeForSession(code);
+
+          if (exchangeError) {
+            setState((prev) => ({ ...prev, loading: false, error: exchangeError.message }));
+            return { error: exchangeError.message };
+          }
+
+          setState((prev) => ({
+            ...prev,
+            session: sessionData.session,
+            user: sessionData.user,
+            loading: false,
+            isGuest: false,
+          }));
+          return { error: null };
+        }
+      }
+
+      if (result.type === 'cancel' || result.type === 'dismiss') {
+        setState((prev) => ({ ...prev, loading: false }));
+        return { error: null, cancelled: true };
+      }
+
+      setState((prev) => ({ ...prev, loading: false }));
+      return { error: null };
+    } catch (err: any) {
+      const msg = err?.message || 'Google sign-in was cancelled or encountered an issue.';
+      setState((prev) => ({ ...prev, loading: false, error: msg }));
+      return { error: msg };
+    }
+  };
+
   const signOut = async () => {
     if (!state.isGuest) {
       try {
@@ -329,6 +409,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...state,
         signIn,
         signUp,
+        signInWithGoogle,
         resendVerificationEmail,
         updateProfile,
         continueAsGuest,
